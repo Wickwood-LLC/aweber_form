@@ -1,0 +1,28 @@
+.buttonTable {
+    border:0;
+    padding:0;
+    width:0;
+}
+
+.buttonTable td {
+    border:0;
+    padding:0;
+}
+
+.buttonTable tr td:last-child {
+    border-right: 0;
+}
+
+div.qtip-content {
+    text-align: center !important;
+}
+
+div#edit-actions {
+    float: left;
+}
+
+div#aweber_webform-loading-save {
+    float: left;
+}
+
+

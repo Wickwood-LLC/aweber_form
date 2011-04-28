@@ -1,0 +1,12 @@
+name = AWeber Web Form
+description = Allows users to add an AWeber web form to a page.
+version = 1.0
+core = 7.x
+php = 5.3.2
+
+
+scripts[] = aweber_webform.js
+scripts[] = qTip/jquery.qtip-1.0.0-rc3.min.js
+
+stylesheets[all][] = aweber_webform.css
+
