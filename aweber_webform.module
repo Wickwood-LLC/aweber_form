@@ -8,344 +8,497 @@ define('AUTH_URL', 'https://auth.aweber.com/1.0/oauth/authorize_app/');
 define('URL_PATH', file_create_url(drupal_get_path('module', 'aweber_webform')));
 
 function aweber_webform_help($path, $arg) {
-    switch ($path) {
-    case "admin/help#aweber_webform":
-        return '<h3>'.t("About").'</h3><p>'.t("The AWeber Web Form module allows users with an AWeber account to add an ").'<a href="http://www.aweber.com/web-forms.htm">'.t("AWeber web form").'</a>'.t(" to a page.").'</p><h3>'.t("Uses").'</h3><dl><dt>'.t("Installing an AWeber web form").'</dt><dd>'.t("You can start installing an AWeber web form that you have created - ").'<a href="http://www.aweber.com/faq/questions/598" target="_blank">'.t("consult the AWeber knowledge base").'</a>'.t(" for a walkthrough.").'</dd></dl>';
-        break;
-    }
+  switch ($path) {
+  case "admin/help#aweber_webform":
+    return '<h3>' . t("About") . '</h3><p>' . t("The AWeber Web Form module allows users with an AWeber account to add an ")
+      . '<a href="http://www.aweber.com/web-forms.htm">' . t("AWeber web form") . '</a>' . t(" to a page.")
+      . '</p><h3>'.t("Uses").'</h3><dl><dt>' . t("Installing an AWeber web form") . '</dt><dd>'
+      . t("You can start installing an AWeber web form that you have created - ")
+      . '<a href="http://www.aweber.com/faq/questions/598" target="_blank">'
+      . t("consult the AWeber knowledge base") . '</a>'.t(" for a walkthrough.")
+      . '</dd></dl>';
+    break;
+  }
 }
 
 
 function aweber_webform_block_info() {
-    $blocks['aweber_webform'] = array(
-        'info'  => t('AWeber Web Form'), //The name that will appear in the block list.
-        'cache' => DRUPAL_CACHE_PER_ROLE, //Default
-    );
-    return $blocks;
+  $blocks['aweber_webform'] = array(
+    'info'  => t('AWeber Web Form'), //The name that will appear in the block list.
+    'cache' => DRUPAL_CACHE_PER_ROLE, //Default
+  );
+  return $blocks;
 }
 
 
 function aweber_webform_block_view($delta = ' ') {
-    switch ($delta){
-    case 'aweber_webform':
-        $block['subject'] = t('');
-        $result = db_query("SELECT js_url FROM {aweber_webform}");
-        foreach($result as $row)
-        {
-            $js_url = $row->js_url;
-        }
-        if (user_access('access content')){
-            if (empty($js_url)){
-                $block['content'] = t('');
-            } else {
-                $block['content'] = "<script type=\"text/javascript\" src=\"" . $js_url . "\"></script>";
-            }
-        }
+  switch ($delta){
+  case 'aweber_webform':
+    $block['subject'] = t('');
+    $result = db_query("SELECT js_url FROM {aweber_webform}");
+    foreach ($result as $row) {
+      $js_url = $row->js_url;
     }
-    return $block;
+    if (user_access('access content')) {
+      if (empty($js_url)) {
+        $block['content'] = t('');
+      //if web form is in db (selected), return javascript for it
+      } else {
+        $block['content'] = "<script type=\"text/javascript\" src=\"{$js_url}\"></script>";
+      }
+    }
+  }
+  return $block;
 }
 
 
 function aweber_webform_menu() {
-    $items = array();
+  $items = array();
 
-    $items['admin/config/content/aweber_webform'] = array(
-        'title' => 'AWeber Web Form',
-        'description' => 'Connect to your AWeber account and select the form that you would like to publish.',
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array('aweber_webform_form'),
-        'access arguments' => array('access administration pages'),
-        'type' => MENU_NORMAL_ITEM,
-    );
-    return $items;
+  $items['admin/config/content/aweber_webform'] = array(
+    'title'            => 'AWeber Web Form',
+    'description'      => 'Connect to your AWeber account and select the form that you would like to publish.',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('aweber_webform_form'),
+    'access arguments' => array('access administration pages'),
+    'type'             => MENU_NORMAL_ITEM,
+  );
+  return $items;
 }
 
 
 function aweber_webform_form($form, &$form_state) {
 
-    if (!db_table_exists('aweber_webform')) {
-        aweber_webform_install();
-    }
-    $result = db_query("SELECT consumer_key, consumer_secret, access_key, access_secret, web_url, js_url, list_id, list_dropdown, webform_dropdown, timestamp FROM {aweber_webform}");
+  if (!db_table_exists('aweber_webform')) {
+    aweber_webform_install();
+  }
+  $result = db_query('SELECT consumer_key, consumer_secret, access_key, access_secret, js_url, lists, web_forms, split_tests, timestamp FROM {aweber_webform}');
+  $row = $result->fetchAssoc();
+  if (empty($row)) {
+    db_insert('aweber_webform')->fields(
+      array(
+        'consumer_key'    => '',
+        'consumer_secret' => '',
+        'access_key'      => '',
+        'access_secret'   => '',
+        'timestamp'       => '0',
+      )
+    )->execute();
+    $result = db_query('SELECT consumer_key, consumer_secret, access_key, access_secret, js_url, lists, web_forms, split_tests, timestamp FROM {aweber_webform}');
     $row = $result->fetchAssoc();
-    if (empty($row)) {
-        db_insert('aweber_webform')
-                ->fields(array(
-                    'consumer_key' => '',
-                    'consumer_secret' => '',
-                    'access_key' => '',
-                    'access_secret' => '',
-                    'timestamp' => '0',
-                ))->execute();
-        $result = db_query("SELECT consumer_key, consumer_secret, access_key, access_secret, web_url, js_url, list_id, list_dropdown, webform_dropdown, timestamp FROM {aweber_webform}");
-        $row = $result->fetchAssoc();
+  }
+
+  $consumer_key    = $row['consumer_key'];
+  $consumer_secret = $row['consumer_secret'];
+  $access_key      = $row['access_key'];
+  $access_secret   = $row['access_secret'];
+  $js_url          = $row['js_url'];
+  $lists           = json_decode($row['lists'], true);
+  $web_forms       = json_decode($row['web_forms'], true);
+  $split_tests     = json_decode($row['split_tests'], true);
+  $timestamp       = $row['timestamp'];
+
+  //Get aweber API set up
+  try {
+    $aweber  = new AWeberAPI($consumer_key, $consumer_secret);
+    $account = $aweber->getAccount($access_key, $access_secret);
+  } catch (AWeberException $e) {
+    //not authorized, prompt auth form
+    return get_Auth_Key_Form($form, $form_state);
+  }
+
+  //if timed out or no data is stored, re-call the API
+  if ((empty($web_forms) && empty($split_tests)) || (time() > $timestamp)) {
+    $web_forms = json_decode(json_encode($account->getWebForms()), true);
+    $split_tests = array();
+    $temp_split_tests = $account->getWebFormSplitTests();
+    //add split test components to split tests array
+    foreach ($temp_split_tests as $this_split_test) {
+      array_push($split_tests, json_decode(json_encode($this_split_test), true));
+      $split_tests[count($split_tests)-1]['components'] =
+        json_decode(json_encode($this_split_test->components), true);
+    }
+    $lists = array();
+    foreach ($account->lists as $this_list) {
+      array_push($lists, $this_list->data);
+    }
+    $lists = json_decode(json_encode($lists), true);
+  }
+
+  $list_web_forms = array();
+  //for each web form, add array index with the list id and value type (WF/ST)
+  foreach ($web_forms as $this_webform) {
+    $link_parts = explode('/', $this_webform['url']);
+    $this_list_id = $link_parts[4];
+    if (!array_key_exists($this_list_id, $list_web_forms)) {
+      $list_web_forms[$this_list_id] = array(
+        'web_forms'   => array(),
+        'split_tests' => array()
+      );
+    }
+    $list_web_forms[$this_list_id]['web_forms'][] = $this_webform;
+  }
+
+  //for each web form, add array index with the list id and value type (WF/ST)
+  foreach ($split_tests as $this_webform) {
+    $link_parts = explode('/', $this_webform['url']);
+    $this_list_id = $link_parts[4];
+    if (!array_key_exists($this_list_id, $list_web_forms)) {
+      $list_web_forms[$this_list_id] = array(
+        'web_forms' => array(),
+        'split_tests' => array()
+      );
+    }
+    $list_web_forms[$this_list_id]['split_tests'][] = $this_webform;
+  }
+
+  //no web forms, prompt to make some
+  if (empty($list_web_forms)) {
+    return get_Null_Form($form, $form_state);
+  } else {
+    //for each list, add list data to index in array
+    foreach ($lists as $this_list) {
+      if (array_key_exists($this_list['id'], $list_web_forms)) {
+        $list_web_forms[$this_list['id']]['list'] = $this_list;
+      }
     }
 
-    $consumer_key     = $row['consumer_key'];
-    $consumer_secret  = $row['consumer_secret'];
-    $access_key       = $row['access_key'];
-    $access_secret    = $row['access_secret'];
-    $web_url          = $row['web_url'];
-    $js_url           = $row['js_url'];
-    $list_id          = $row['list_id'];
-    $list_dropdown    = json_decode($row['list_dropdown'], true);
-    $webform_dropdown = json_decode($row['webform_dropdown'], true);
-    $timestamp        = $row['timestamp'];
+    $list_dropdown = array();
+    $webform_dropdown = array();
+    $default_webform = '';
+    $default_list = '';
 
-    try {
-        $aweber = new AWeberAPI($consumer_key, $consumer_secret);
-        $account = $aweber->getAccount($access_key, $access_secret);
-    } catch (AWeberException $e) {
-        return get_Auth_Key_Form($form, $form_state);
-    }
-
-    if ((empty($list_dropdown) && empty($webform_dropdown)) || (time() > $timestamp)) {
-        $list_web_forms = array();
-        foreach ($account->getWebForms() as $this_webform) {
-            $link_parts = explode('/', $this_webform->url);
-            $this_list_id = $link_parts[4];
-            if (!array_key_exists($this_list_id, $list_web_forms)) {
-                $list_web_forms[$this_list_id] = array(
-                    'web_forms'   => array(),
-                    'split_tests' => array()
-                );
-            }
-            $list_web_forms[$this_list_id]['web_forms'][] = $this_webform;
+    $list_tables = array();
+    //for each list, construct tables
+    foreach ($list_web_forms as $this_list_data) {
+      $this_list = $this_list_data['list'];
+      $list_dropdown[$this_list['id']] = $this_list['name'];
+      $list_table = '<div class="aweber_webform_webform_radiotables" id="aweber_webform_webform_radiotable_' . $this_list['id'] . '">
+        <h2 class="aweber_webform_header">Step 2: Select A Web Form or Split Test</h2>
+        <br>
+        <strong>Web Forms</strong>
+        <table class="aweber_webform_table">
+        <tr>
+        <th></th>
+        <th><label class="aweber_webform_help aweber_webform_table_webform_name">Name</label></th>
+        <th><label class="aweber_webform_help aweber_webform_table_displays">Displays</label></th>
+        <th><label class="aweber_webform_help aweber_webform_table_submissions">Submissions</label></th>
+        <th><label class="aweber_webform_help aweber_webform_table_conv">S/D</label></th>
+        <th><label class="aweber_webform_help aweber_webform_table_unique_displays">Unique Displays</label></th>
+        <th><label class="aweber_webform_help aweber_webform_table_unique_conv">S/UD</label></th>
+        <th><label class="aweber_webform_help aweber_webform_table_preview">Preview</label></th>
+        </tr>';
+      //for each web form, add row
+      foreach ($this_list_data['web_forms'] as $this_form) {
+        $checked = "";
+        if ($this_form['data']['javascript_source_link'] == $js_url) {
+          $default_list = $this_list['id'];
+          $checked = 'checked="checked"';
         }
-
-        foreach ($account->getWebFormSplitTests() as $this_webform) {
-            $link_parts = explode('/', $this_webform->url);
-            $this_list_id = $link_parts[4];
-            if (!array_key_exists($this_list_id, $list_web_forms)) {
-                $list_web_forms[$this_list_id] = array(
-                    'web_forms' => array(),
-                    'split_tests' => array()
-                );
+        $list_table .= '<tr>
+          <td style="text-align:center;"><input type="radio" name="aweber_webform_webform_'.$this_list['id'].'" value="'
+          . $this_form['data']['javascript_source_link'] . '" ' . $checked . ' class="form-radio"/></td>
+          <td>' . $this_form['data']['name'] . '</td>
+          <td>' . $this_form['data']['total_displays'] . '</td>
+          <td>' . $this_form['data']['total_submissions'] . '</td>
+          <td>' . number_format($this_form['data']['conversion_percentage'], 1) .'%</td>
+          <td>' . $this_form['data']['total_unique_displays'] . '</td>
+          <td>' . number_format($this_form['data']['unique_conversion_percentage'], 1) . '%</td>
+          <td><a href="' . $this_form['data']['html_source_link'] . '" target="_blank">Preview</a></td>
+          </tr>';
+      }
+      $list_table .= '</table>';
+      //if there are STs, make table for them
+      if (!empty($this_list_data['split_tests'])) {
+        $list_table .= '<br/><strong>Split Tests</strong>
+          <table class="aweber_webform_table">
+          <tr>
+          <th></th>
+          <th><label class="aweber_webform_help aweber_webform_table_splittest_name">Name</label></th>
+          <th><label class="aweber_webform_help aweber_webform_table_webform_name">Web Form Name</label></th>
+          <th><label class="aweber_webform_help aweber_webform_table_weight">Probability</label></th>
+          <th><label class="aweber_webform_help aweber_webform_table_displays">Displays</label></th>
+          <th><label class="aweber_webform_help aweber_webform_table_submissions">Submissions</label></th>
+          <th><label class="aweber_webform_help aweber_webform_table_conv">S/D</label></th>
+          <th><label class="aweber_webform_help aweber_webform_table_unique_displays">Unique Displays</labels></th>
+          <th><label class="aweber_webform_help aweber_webform_table_unique_conv">S/UD</label></th>
+          </tr>';
+        //for each ST, add row with corresponding class name
+        foreach ($this_list_data['split_tests'] as $this_form) {
+          $checked = "";
+          if ($this_form['data']['javascript_source_link'] == $js_url) {
+            $default_list = $this_list['id'];
+            $checked = 'checked="checked"';
+            $currentFormName = $this_form['data']['name'];
+            $currentFormListName = $this_list['name'];
+          }
+          $rowClassName = 'class="aweber_webform_splittest_border"';
+          $list_table .= '<tr><td ' . $rowClassName . ' style="text-align:center;">
+            <input type="radio" name="aweber_webform_webform_'
+            . $this_list['id']. '" value="'
+            . $this_form['data']['javascript_source_link'] . '" ' . $checked . ' class="form-radio"/></td>
+            <td ' . $rowClassName . '>' . $this_form['data']['name'] . '</td>';
+          $newrow = false;
+          foreach ($this_form['components']['data']['entries'] as $this_component) {
+            if ($newrow) {
+              $list_table .= '<tr><td ' . $rowClassName . '></td><td ' . $rowClassName . '></td>';
             }
-            $list_web_forms[$this_list_id]['split_tests'][] = $this_webform;
+            if (!$newrow) $newrow = true;
+            $list_table .= '<td ' . $rowClassName . '>' . $this_component['name'] . '</td>
+              <td ' . $rowClassName . '>' . $this_component['weight'] . '%</td>
+              <td ' . $rowClassName . '>' . $this_component['total_displays'] . '</td>
+              <td ' . $rowClassName . '>' . $this_component['total_submissions'] . '</td>
+              <td ' . $rowClassName . '>' . number_format($this_component['conversion_percentage'], 1) .'%</td>
+              <td ' . $rowClassName . '>' . $this_component['total_unique_displays'] . '</td>
+              <td ' . $rowClassName . '>' . number_format($this_component['unique_conversion_percentage'], 1) . '%</td>
+              </tr>';
+            $rowClassName = 'class="aweber_webform_splittest_noborder"';
+          }
         }
-
-        if (empty($list_web_forms)) {
-            return get_Null_Form($form, $form_state);
-        } else {
-            $lists = $account->lists;
-            foreach ($lists as $this_list) {
-                if (array_key_exists($this_list->id, $list_web_forms)) {
-                    $list_web_forms[$this_list->id]['list'] = $this_list;
-                }
-            }
-
-            $list_dropdown = array();
-            $list_dropdown[""] = "Step 1: Select A List";
-            $webform_dropdown = array();
-            foreach ($list_web_forms as $this_list_data) {
-                $this_list = $this_list_data['list'];
-                $list_dropdown[$this_list->id] = $this_list->name;
-                $webform_dropdown[$this_list->id][""] = "Step 2: Select A Web Form";
-                foreach ($this_list_data['web_forms'] as $this_form) {
-                    $webform_dropdown[$this_list->id][$this_form->url . " " . _getWebformJsUrl($this_form)] = $this_form->name;
-                }
-                foreach ($this_list_data['split_tests'] as $this_form) {
-                    $webform_dropdown[$this_list->id][$this_form->url . " " . _getWebformJsUrl($this_form)] = $this_form->name;
-                }
-            }
-        }
+        $list_table .= '</table></div>';
+      } else {
+        $list_table .= '</div>';
+      }
+      array_push($list_tables, $list_table);
     }
+  }
 
-    $form['aweber_webform_list'] = array(
-        '#prefix'        => '<label id="edit-aweber-webform-list-select-label">List Select <span class="form-required" title="This field is required.">*</span></label>',
-        '#type'          => 'select',
-        '#title'         => t(''),
-        '#default_value' => $list_id,
-        '#options'       => $list_dropdown,
-        '#description'   => t(''),
-        '#suffix'        => '<label id="edit-aweber-webform-webform-select-label">Webform Select <span class="form-required" title="This field is required.">*</span></label>',
+  $form['deauth'] = deauthorizeButton();
+
+  $form['aweber_webform_list'] = array(
+    '#prefix'        => '<h2 class="aweber_webform_header">Step 1: Select A List</h2>',
+    '#type'          => 'select',
+    '#title'         => t(''),
+    '#default_value' => $default_list,
+    '#options'       => $list_dropdown,
+    '#description'   => t(''),
+    '#suffix'        => '</td><td>'
+  );
+
+  $form['refresh'] = refreshButton();
+
+  //add tables to page
+  foreach ($list_tables as $this_table) {
+    $form[] = array(
+      '#prefix' => $this_table,
     );
+  }
 
+  /* On button click, buttons will change text. Since the text changes,
+   * Drupal will not recognize that button as 'clicked_button' in the form_state
+   * because such a button with said attributes does not exist since the text of
+   * the button is not what form_state has stored. To resolve this, I make 'fake'
+   * buttons with the text of what it will change to, so the Drupal form will see
+   * it as this this button was pressed, although the real button was pressed. */
+  $form['refresh2'] = refreshButtonFake();
+  $form['deauth2']  = deauthorizeButtonFake();
+  $form['submit2']  = submitButtonFake();
 
-    foreach ($webform_dropdown as $this_list_id => $list_webforms) {
-        $form['aweber_webform_webform_' . $this_list_id] = array(
-            '#prefix'        => '<div class="aweber_webform_webform_dropdowns" id="aweber_webform_webform_dropdown_'.$this_list_id.'">',
-            '#type'          => 'select',
-            '#title'         => t(''),
-            '#default_value' => $web_url . " " . $js_url,
-            '#options'       => $list_webforms,
-            '#description'   => t(''),
-            '#options'       => $list_webforms,
-            '#description'   => t(''),
-            '#suffix'        => '</div>',
-        );
-    }
+  db_update('aweber_webform')->fields(array(
+    'lists'       => json_encode($lists),
+    'web_forms'   => json_encode($web_forms),
+    'split_tests' => json_encode($split_tests),
+    'timestamp'   => time() + (5 * 60),
+  ))->execute();
 
-    $form['label'] = array(
-        '#prefix' => '&nbsp;<a id=aweber_webform-form-preview href="#" target="_blank">Preview Web Form</a><br><br>',
-        '#weight' => 1,
-    );
-
-    $form['saving'] = array(
-        '#prefix' => '<br><div class="aweber_webform_button_loading" id="aweber_webform-loading-save">&nbsp;&nbsp;&nbsp;&nbsp; Saving...</div><br><br><br>',
-        '#weight' => 1001,
-    );
-
-    $form['refresh'] = refreshButton();
-
-    $form['deauth'] = deauthorizeButton();
-
-    db_update('aweber_webform')->fields(array(
-            'list_dropdown'    => json_encode($list_dropdown),
-            'webform_dropdown' => json_encode($webform_dropdown),
-            'timestamp'        => time() + (5 * 60),
-        ))->execute();
-
-    return system_settings_form($form);
+  return system_settings_form($form);
 }
 
-function refreshButton()
-{
-    return array(
-        '#prefix' => '<table class="buttonTable"><tr><td>',
-        '#type'   => 'submit',
-        '#value'  => t('Refresh Dropdowns '),
-        '#name'   => 'refresh',
-        '#weight' => 1002,
-        '#suffix' => '</td><td><img id="helpRefresh" src="'.URL_PATH.'/questionmark.png" alt=""></td></tr>',
-    );
+/**
+ * Add a button to refresh the page
+ */
+function refreshButton() {
+  return array(
+    '#prefix' => '<div class="aweber_webform_refresh">',
+    '#type'   => 'submit',
+    '#value'  => t('Refresh Lists'),
+    '#name'   => 'refresh',
+    '#suffix' => '<img class="aweber_webform_help" id="aweber_webform_helpRefresh" src="'
+    .URL_PATH.'/questionmark.png" alt=""></div>',
+  );
 }
 
-function deauthorizeButton()
-{
-    return array(
-        '#prefix' => '<tr><td><div class="aweber_webform_button_loading" id="aweber_webform-loading-refresh">&nbsp;&nbsp;&nbsp;&nbsp; Refreshing...<br><br></div></td></tr><tr><td>',
-        '#type'   => 'submit',
-        '#value'  => t('Deauthorize Account'),
-        '#name'   => 'deauth',
-        '#weight' => 1003,
-        '#suffix' => '</td><td><img id="helpDeauth" src="'.URL_PATH.'/questionmark.png" alt=""></td></tr><tr><td><div class="aweber_webform_button_loading" id="aweber_webform-loading-deauth">&nbsp;&nbsp;&nbsp;&nbsp; Deauthorizing...<br><br></div></td></tr></table>',
-    );
+/**
+ * Add a fake refresh button with the changed text
+ * so the form state will recognize the pressed button
+ */
+function refreshButtonFake() {
+  return array(
+    '#prefix' => '<div class="aweber_webform_fakebutton">',
+    '#type'   => 'submit',
+    '#value'  => t('Refreshing...'),
+    '#name'   => 'refresh',
+    '#suffix' => '</div>',
+  );
 }
 
-function _getWebformJsUrl($webform) {
-    $form_hash = $webform->id % 100;
-    $form_hash = (($form_hash < 10) ? '0' : '') . $form_hash;
-    $prefix = (_isSplitTest($webform)) ? 'split_' : '';
-    return 'http://forms.aweber.com/form/' . $form_hash . '/' . $prefix . $webform->id . '.js';
+/**
+ * Add a button to deauthorize the AWeber account
+ */
+function deauthorizeButton() {
+  return array(
+    '#prefix' => '<div class="aweber_webform_deauthorize">',
+    '#type'   => 'submit',
+    '#value'  => t('Deauthorize Account'),
+    '#name'   => 'deauth',
+    '#suffix' => '<img class="aweber_webform_help" id="aweber_webform_helpDeauth" src="'.URL_PATH.'/questionmark.png" alt=""></div>',
+  );
 }
 
-function _isSplitTest($webform) {
-    return $webform->type == 'web_form_split_test';
+/**
+ * Add a fake deauth button with the changed text
+ * so the form state will recognize the pressed button
+ */
+function deauthorizeButtonFake() {
+  return array(
+    '#prefix' => '<div class="aweber_webform_fakebutton">',
+    '#type'   => 'submit',
+    '#value'  => t('Deauthorizing...'),
+    '#name'   => 'deauth',
+    '#suffix' => '</div>',
+  );
 }
 
-function deauthorize()
-{
-    db_update('aweber_webform')
-        ->fields(array(
-            'consumer_key'     => '',
-            'consumer_secret'  => '',
-            'access_key'       => '',
-            'access_secret'    => '',
-            'web_url'          => '',
-            'js_url'           => '',
-            'list_id'          => '',
-            'list_dropdown'    => '',
-            'webform_dropdown' => '',
-            'timestamp'        => '0',
-        ))->execute();
+/**
+ * Add a fake submit button with the changed text
+ * so the form state will recognize the pressed button
+ */
+function submitButtonFake() {
+  return array(
+    '#prefix' => '<div class="aweber_webform_fakebutton">',
+    '#type'   => 'submit',
+    '#value'  => t('Saving...'),
+    '#name'   => 'op',
+    '#suffix' => '</div>',
+  );
 }
 
-//Set the timestamp to 0 so API will be called
-function refresh()
-{
-    db_update('aweber_webform')
-        ->fields(array(
-            'timestamp' => '0',
-        ))->execute();
+/**
+ * Deauthorizes AWeber account by
+ * emptying the table
+ */
+function deauthorize() {
+  db_update('aweber_webform')
+    ->fields(array(
+      'consumer_key'     => '',
+      'consumer_secret'  => '',
+      'access_key'       => '',
+      'access_secret'    => '',
+      'js_url'           => '',
+      'lists'            => '',
+      'web_forms'        => '',
+      'split_tests'      => '',
+      'timestamp'        => '0',
+    ))->execute();
+}
+
+/**
+ * Refreshs the page with a fresh API call
+ * by setting timestamp to 0,
+ * timing out the latest API call
+ */
+function refresh() {
+  db_update('aweber_webform')
+    ->fields(array(
+      'timestamp' => '0',
+    ))->execute();
 }
 
 function aweber_webform_form_validate($form, &$form_state) {
-
-    if (!isset($form_state['values']['aweber_webform_authkey'])) {
-        if ($form_state['clicked_button']['#name'] == 'deauth') {
-            deauthorize();
-        } else if ($form_state['clicked_button']['#name'] == 'refresh') {
-            refresh();
+  //if not the authorization form
+  if (!isset($form_state['values']['aweber_webform_authkey'])) {
+    if ($form_state['clicked_button']['#name'] == 'deauth') {
+      deauthorize();
+    } else if ($form_state['clicked_button']['#name'] == 'refresh') {
+      refresh();
+    } else {
+      //if a list was selected
+      if (!empty($form_state['values']['aweber_webform_list'])) {
+        $list_id = $form_state['values']['aweber_webform_list'];
+        //if a web form was selected
+        if (!empty($form_state['input']['aweber_webform_webform_' . $list_id])) {
+          //store the javascript url of the selected form
+          db_update('aweber_webform')->fields(array(
+            'js_url'  => $form_state['input']['aweber_webform_webform_' . $list_id],
+          ))->execute();
         } else {
-            if (!empty($form_state['values']['aweber_webform_list'])) {
-                $list_id = $form_state['values']['aweber_webform_list'];
-                if (!empty($form_state['values']['aweber_webform_webform_' . $list_id])) {
-                    list($web_url, $js_url) = preg_split("/ /", $form_state['values']['aweber_webform_webform_' . $list_id]);
-                    db_update('aweber_webform')->fields(array(
-                            'web_url' => $web_url,
-                            'js_url'  => $js_url,
-                            'list_id' => $list_id,
-                        ))->execute();
-                } else {
-                    form_set_error('aweber_webform_webform', 'Webform Select field is required');
-                }
-            } else {
-                form_set_error('aweber_webform_webform', 'List Select field is required');
-            }
+          form_set_error('aweber_webform_webform', 'Form Select field is required');
         }
-        return system_settings_form($form);
+      } else {
+        form_set_error('aweber_webform_list', 'List Select field is required');
+      }
     }
-    $authkey = $form_state['values']['aweber_webform_authkey'];
-
-    try {
-        $data = AWeberAPI::getDataFromAweberID($authkey);
-    } catch (AweberException $e){
-        form_set_error('aweber_webform_authkey', t('The Authorization Key provided was not valid.'));
-        return system_settings_form($form);
-    } if (empty($data)) {
-        form_set_error('aweber_webform_authkey', t('The Authorization Key provided was not valid.'));
-        return system_settings_form($form);
-    }
-    list($consumer_key, $consumer_secret, $access_key, $access_secret) = $data;
-    db_update('aweber_webform')->fields(array(
-            'consumer_key'    => $consumer_key,
-            'consumer_secret' => $consumer_secret,
-            'access_key'      => $access_key,
-            'access_secret'   => $access_secret,
-        ))->execute();
-
     return system_settings_form($form);
+  }
+  //else, authorization form was submitted
+
+  $authkey = $form_state['values']['aweber_webform_authkey'];
+
+  //try to authorize account
+  try {
+    $data = AWeberAPI::getDataFromAweberID($authkey);
+  } catch (AweberException $e){
+    form_set_error('aweber_webform_authkey', t('The Authorization Key provided was not valid.'));
+    return system_settings_form($form);
+  } if (empty($data)) {
+    form_set_error('aweber_webform_authkey', t('The Authorization Key provided was not valid.'));
+    return system_settings_form($form);
+  }
+  //store data for authorized account
+  list($consumer_key, $consumer_secret, $access_key, $access_secret) = $data;
+  db_update('aweber_webform')->fields(array(
+    'consumer_key'    => $consumer_key,
+    'consumer_secret' => $consumer_secret,
+    'access_key'      => $access_key,
+    'access_secret'   => $access_secret,
+  ))->execute();
+
+  return system_settings_form($form);
 }
 
-
+/**
+ * Creates the form that prompts for
+ * account authorization
+ */
 function get_Auth_Key_Form($form, &$form_state) {
-    $form['aweber_webform_authkey'] = array(
-        '#type'          => 'textarea',
-        '#title'         => t('Authorization Key'),
-        '#default_value' => t(''),
-        '#cols'          => 30,
-        '#rows'          => 2,
-        '#maxlength'     => 200,
-        '#description'   => t(''),
-        '#required'      => TRUE,
-        '#suffix'        => '&nbsp;<a href="' . AUTH_URL . APP_ID . '" target="_blank">Click here to obtain an authorization key and copy it into the box above.</a><br>',
-    );
+  $form['aweber_webform_authkey'] = array(
+    '#type'          => 'textarea',
+    '#title'         => t('Authorization Key'),
+    '#default_value' => t(''),
+    '#cols'          => 30,
+    '#rows'          => 2,
+    '#maxlength'     => 200,
+    '#description'   => t(''),
+    '#required'      => TRUE,
+    '#suffix'        => '&nbsp;<a href="' . AUTH_URL . APP_ID . '" target="_blank">Click here to obtain an authorization key and copy it into the box above.</a><br>',
+  );
 
-    $form['loading'] = array(
-        '#prefix' => '<br><div class="aweber_webform_button_loading" id="aweber_webform-loading-save">&nbsp;&nbsp;&nbsp;&nbsp;  Saving...</div>',
-        '#weight' => 1001,
-    );
+  $form['submit2'] = submitButtonFake();
 
-    return system_settings_form($form);
+  return system_settings_form($form);
 }
 
+/**
+ * Creates the form that prompts for
+ * user to create a web form
+ */
 function get_Null_Form($form, &$form_state) {
-    $form['aweber_webform_null_text'] = array(
-        '#prefix' => 'This AWeber account does not currently have any completed web forms.<br>',
-        '#suffix' => 'Please <a href="https://www.aweber.com/users/web_forms/index" target="_blank">create a web form</a> in order to place it on your blog.<br><div id="aweber_webform_null">',
-    );
+  $form['aweber_webform_null_text'] = array(
+    '#prefix' => 'This AWeber account does not currently have any completed web forms.<br>',
+    '#suffix' => 'Please <a href="https://www.aweber.com/users/web_forms/index" target="_blank">create a web form</a> in order to place it on your blog.<br><div id="aweber_webform_null">',
+  );
 
-    $form['aweber_webform_null'] = array(
-        '#prefix' => '</div>',
-        '#weight' => 1001,
-        '#suffix' => '<br>',
-    );
+  $form['aweber_webform_null'] = array(
+    '#prefix' => '</div>',
+    '#weight' => 1001,
+    '#suffix' => '<br>',
+  );
 
-    $form['refresh'] = refreshButton();
+  $form['refresh']  = refreshButton();
+  $form['deauth']   = deauthorizeButton();
+  $form['refresh2'] = refreshButtonFake();
+  $form['deauth2']  = deauthorizeButtonFake();
 
-    $form['deauth'] = deauthorizeButton();
-
-    return system_settings_form($form);
+  return system_settings_form($form);
 }
+

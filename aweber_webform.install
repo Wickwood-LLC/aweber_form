@@ -16,7 +16,7 @@ function aweber_webform_uninstall(){
 
 function aweber_webform_schema(){
     $schema['aweber_webform'] = array(
-        'description' => t('Stores consumer key, secret, access key, secret, webform web and js URLs, and list ID'),
+        'description' => t('Stores consumer key, secret, access key, secret, webform web and js URLs, conversion statistics, list ID, and timestamp'),
         'fields' => array(
             'consumer_key' => array(
                 'type' => 'varchar',
@@ -38,10 +38,6 @@ function aweber_webform_schema(){
                 'length' => 50,
                 'not null' => TRUE,
             ),
-            'web_url' => array(
-                'type' => 'varchar',
-                'length' => 250,
-            ),
             'js_url' => array(
                 'type' => 'varchar',
                 'length' => 250,
@@ -50,11 +46,17 @@ function aweber_webform_schema(){
                 'type' => 'varchar',
                 'length' => 50,
             ),
-            'list_dropdown' => array(
+            'lists' => array(
                 'type' => 'text',
+                'size' => 'big',
             ),
-            'webform_dropdown' => array(
+            'web_forms' => array(
                 'type' => 'text',
+                'size' => 'big',
+            ),
+            'split_tests' => array(
+                'type' => 'text',
+                'size' => 'big',
             ),
             'timestamp' => array(
                 'type' => 'int',
