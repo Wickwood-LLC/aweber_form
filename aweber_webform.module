@@ -11,12 +11,15 @@ function aweber_webform_help($path, $arg) {
   switch ($path) {
   case "admin/help#aweber_webform":
     return '<h3>' . t("About") . '</h3><p>' . t("The AWeber Web Form module allows users with an AWeber account to add an ")
-      . '<a href="http://www.aweber.com/web-forms.htm">' . t("AWeber web form") . '</a>' . t(" to a page.")
-      . '</p><h3>'.t("Uses").'</h3><dl><dt>' . t("Installing an AWeber web form") . '</dt><dd>'
+      . '<a href="http://www.aweber.com/web-forms.htm">' . t("AWeber web form") . '</a>' . (" to a page.")
+      . '</p><h3>' . t("Uses") . '</h3><dl><dt>' . t("Installing an AWeber web form") . '</dt><dd>'
       . t("You can start installing an AWeber web form that you have created - ")
       . '<a href="http://www.aweber.com/faq/questions/598" target="_blank">'
-      . t("consult the AWeber knowledge base") . '</a>'.t(" for a walkthrough.")
-      . '</dd></dl>';
+      . t("consult the AWeber knowledge base") . '</a>' . t(" for a walkthrough.")
+      . '</dd></dl><dl><dt>' . t("Evaluate web form performance") . '</dt><dd>'
+      . t("View web form statistics and performance data in your Drupal admin.") . '</dd></dl><dl><dt>'
+      . t("Preview web forms before publishing") . '</dt><dd>' 
+      . t("See what a form looks like before adding it to your site.") . '</dd></dl>';
     break;
   }
 }
