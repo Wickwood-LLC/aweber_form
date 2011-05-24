@@ -10,12 +10,12 @@ define('URL_PATH', file_create_url(drupal_get_path('module', 'aweber_webform')))
 function aweber_webform_help($path, $arg) {
   switch ($path) {
   case "admin/help#aweber_webform":
-    return '<h3>' . t("About") . '</h3><p>' . t("The AWeber Web Form module allows users with an AWeber account to add an ")
-      . '<a href="http://www.aweber.com/web-forms.htm">' . t("AWeber web form") . '</a>' . (" to a page.")
+    return '<h3>' . t("About") . '</h3><p>' . t("The AWeber Web Form module allows users with an AWeber account to add an")
+      . '&nbsp;<a href="http://www.aweber.com/web-forms.htm">' . t("AWeber web form") . '</a>&nbsp;' . ("to a page.")
       . '</p><h3>' . t("Uses") . '</h3><dl><dt>' . t("Installing an AWeber web form") . '</dt><dd>'
-      . t("You can start installing an AWeber web form that you have created - ")
-      . '<a href="http://www.aweber.com/faq/questions/598" target="_blank">'
-      . t("consult the AWeber knowledge base") . '</a>' . t(" for a walkthrough.")
+      . t("You can start installing an AWeber web form that you have created -")
+      . '&nbsp;<a href="http://www.aweber.com/faq/questions/598" target="_blank">'
+      . t("consult the AWeber knowledge base") . '</a>&nbsp;' . t("for a walkthrough.")
       . '</dd></dl><dl><dt>' . t("Evaluate web form performance") . '</dt><dd>'
       . t("View web form statistics and performance data in your Drupal admin.") . '</dd></dl><dl><dt>'
       . t("Preview web forms before publishing") . '</dt><dd>' 
@@ -35,7 +35,7 @@ function aweber_webform_block_info() {
 
 
 function aweber_webform_block_view($delta = ' ') {
-  switch ($delta){
+  switch ($delta) {
   case 'aweber_webform':
     $block['subject'] = t('');
     $result = db_query("SELECT js_url FROM {aweber_webform}");
@@ -46,7 +46,8 @@ function aweber_webform_block_view($delta = ' ') {
       if (empty($js_url)) {
         $block['content'] = t('');
       //if web form is in db (selected), return javascript for it
-      } else {
+      }
+    else {
         $block['content'] = "<script type=\"text/javascript\" src=\"{$js_url}\"></script>";
       }
     }
@@ -96,9 +97,9 @@ function aweber_webform_form($form, &$form_state) {
   $access_key      = $row['access_key'];
   $access_secret   = $row['access_secret'];
   $js_url          = $row['js_url'];
-  $lists           = json_decode($row['lists'], true);
-  $web_forms       = json_decode($row['web_forms'], true);
-  $split_tests     = json_decode($row['split_tests'], true);
+  $lists           = json_decode($row['lists'], TRUE);
+  $web_forms       = json_decode($row['web_forms'], TRUE);
+  $split_tests     = json_decode($row['split_tests'], TRUE);
   $timestamp       = $row['timestamp'];
 
   //Get aweber API set up
@@ -112,20 +113,20 @@ function aweber_webform_form($form, &$form_state) {
 
   //if timed out or no data is stored, re-call the API
   if ((empty($web_forms) && empty($split_tests)) || (time() > $timestamp)) {
-    $web_forms = json_decode(json_encode($account->getWebForms()), true);
+    $web_forms = json_decode(json_encode($account->getWebForms()), TRUE);
     $split_tests = array();
     $temp_split_tests = $account->getWebFormSplitTests();
     //add split test components to split tests array
     foreach ($temp_split_tests as $this_split_test) {
-      array_push($split_tests, json_decode(json_encode($this_split_test), true));
+      array_push($split_tests, json_decode(json_encode($this_split_test), TRUE));
       $split_tests[count($split_tests)-1]['components'] =
-        json_decode(json_encode($this_split_test->components), true);
+        json_decode(json_encode($this_split_test->components), TRUE);
     }
     $lists = array();
     foreach ($account->lists as $this_list) {
       array_push($lists, $this_list->data);
     }
-    $lists = json_decode(json_encode($lists), true);
+    $lists = json_decode(json_encode($lists), TRUE);
   }
 
   $list_web_forms = array();
@@ -158,7 +159,8 @@ function aweber_webform_form($form, &$form_state) {
   //no web forms, prompt to make some
   if (empty($list_web_forms)) {
     return get_Null_Form($form, $form_state);
-  } else {
+  }
+  else {
     //for each list, add list data to index in array
     foreach ($lists as $this_list) {
       if (array_key_exists($this_list['id'], $list_web_forms)) {
@@ -199,12 +201,12 @@ function aweber_webform_form($form, &$form_state) {
           $checked = 'checked="checked"';
         }
         $list_table .= '<tr>
-          <td style="text-align:center;"><input type="radio" name="aweber_webform_webform_'.$this_list['id'].'" value="'
-          . $this_form['data']['javascript_source_link'] . '" ' . $checked . ' class="form-radio"/></td>
+          <td style="text-align:center;"><input type="radio" name="aweber_webform_webform_' . $this_list['id'] .
+          '" value="' . $this_form['data']['javascript_source_link'] . '" ' . $checked . ' class="form-radio"/></td>
           <td>' . $this_form['data']['name'] . '</td>
           <td>' . $this_form['data']['total_displays'] . '</td>
           <td>' . $this_form['data']['total_submissions'] . '</td>
-          <td>' . number_format($this_form['data']['conversion_percentage'], 1) .'%</td>
+          <td>' . number_format($this_form['data']['conversion_percentage'], 1) . '%</td>
           <td>' . $this_form['data']['total_unique_displays'] . '</td>
           <td>' . number_format($this_form['data']['unique_conversion_percentage'], 1) . '%</td>
           <td><a href="' . $this_form['data']['html_source_link'] . '" target="_blank">Preview</a></td>
@@ -238,20 +240,20 @@ function aweber_webform_form($form, &$form_state) {
           $rowClassName = 'class="aweber_webform_splittest_border"';
           $list_table .= '<tr><td ' . $rowClassName . ' style="text-align:center;">
             <input type="radio" name="aweber_webform_webform_'
-            . $this_list['id']. '" value="'
+            . $this_list['id'] . '" value="'
             . $this_form['data']['javascript_source_link'] . '" ' . $checked . ' class="form-radio"/></td>
             <td ' . $rowClassName . '>' . $this_form['data']['name'] . '</td>';
-          $newrow = false;
+          $newrow = FALSE;
           foreach ($this_form['components']['data']['entries'] as $this_component) {
             if ($newrow) {
               $list_table .= '<tr><td ' . $rowClassName . '></td><td ' . $rowClassName . '></td>';
             }
-            if (!$newrow) $newrow = true;
+            if (!$newrow) $newrow = TRUE;
             $list_table .= '<td ' . $rowClassName . '>' . $this_component['name'] . '</td>
               <td ' . $rowClassName . '>' . $this_component['weight'] . '%</td>
               <td ' . $rowClassName . '>' . $this_component['total_displays'] . '</td>
               <td ' . $rowClassName . '>' . $this_component['total_submissions'] . '</td>
-              <td ' . $rowClassName . '>' . number_format($this_component['conversion_percentage'], 1) .'%</td>
+              <td ' . $rowClassName . '>' . number_format($this_component['conversion_percentage'], 1) . '%</td>
               <td ' . $rowClassName . '>' . $this_component['total_unique_displays'] . '</td>
               <td ' . $rowClassName . '>' . number_format($this_component['unique_conversion_percentage'], 1) . '%</td>
               </tr>';
@@ -259,7 +261,8 @@ function aweber_webform_form($form, &$form_state) {
           }
         }
         $list_table .= '</table></div>';
-      } else {
+      }
+      else {
         $list_table .= '</div>';
       }
       array_push($list_tables, $list_table);
@@ -317,7 +320,7 @@ function refreshButton() {
     '#value'  => t('Refresh Lists'),
     '#name'   => 'refresh',
     '#suffix' => '<img class="aweber_webform_help" id="aweber_webform_helpRefresh" src="'
-    .URL_PATH.'/questionmark.png" alt=""></div>',
+    . URL_PATH . '/questionmark.png" alt=""></div>',
   );
 }
 
@@ -344,7 +347,8 @@ function deauthorizeButton() {
     '#type'   => 'submit',
     '#value'  => t('Deauthorize Account'),
     '#name'   => 'deauth',
-    '#suffix' => '<img class="aweber_webform_help" id="aweber_webform_helpDeauth" src="'.URL_PATH.'/questionmark.png" alt=""></div>',
+    '#suffix' => '<img class="aweber_webform_help" id="aweber_webform_helpDeauth" src="' 
+    . URL_PATH . '/questionmark.png" alt=""></div>',
   );
 }
 
@@ -412,9 +416,11 @@ function aweber_webform_form_validate($form, &$form_state) {
   if (!isset($form_state['values']['aweber_webform_authkey'])) {
     if ($form_state['clicked_button']['#name'] == 'deauth') {
       deauthorize();
-    } else if ($form_state['clicked_button']['#name'] == 'refresh') {
+    }
+    elseif ($form_state['clicked_button']['#name'] == 'refresh') {
       refresh();
-    } else {
+    }
+    else {
       //if a list was selected
       if (!empty($form_state['values']['aweber_webform_list'])) {
         $list_id = $form_state['values']['aweber_webform_list'];
@@ -424,10 +430,12 @@ function aweber_webform_form_validate($form, &$form_state) {
           db_update('aweber_webform')->fields(array(
             'js_url'  => $form_state['input']['aweber_webform_webform_' . $list_id],
           ))->execute();
-        } else {
+        }
+        else {
           form_set_error('aweber_webform_webform', 'Form Select field is required');
         }
-      } else {
+      }
+      else {
         form_set_error('aweber_webform_list', 'List Select field is required');
       }
     }
@@ -440,7 +448,7 @@ function aweber_webform_form_validate($form, &$form_state) {
   //try to authorize account
   try {
     $data = AWeberAPI::getDataFromAweberID($authkey);
-  } catch (AweberException $e){
+  } catch (AweberException $e) {
     form_set_error('aweber_webform_authkey', t('The Authorization Key provided was not valid.'));
     return system_settings_form($form);
   } if (empty($data)) {
