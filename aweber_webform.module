@@ -14,7 +14,7 @@ function aweber_webform_help($path, $arg) {
       . t("consult the AWeber knowledge base") . '</a>&nbsp;' . t("for a walkthrough.")
       . '</dd></dl><dl><dt>' . t("Evaluate web form performance") . '</dt><dd>'
       . t("View web form statistics and performance data in your Drupal admin.") . '</dd></dl><dl><dt>'
-      . t("Preview web forms before publishing") . '</dt><dd>' 
+      . t("Preview web forms before publishing") . '</dt><dd>'
       . t("See what a form looks like before adding it to your site.") . '</dd></dl>';
     break;
   }
@@ -43,7 +43,7 @@ function aweber_webform_block_view($delta = ' ') {
         $block['content'] = t('');
       //if web form is in db (selected), return javascript for it
       }
-    else {
+      else {
         $block['content'] = "<script type=\"text/javascript\" src=\"{$js_url}\"></script>";
       }
     }
@@ -173,7 +173,7 @@ function aweber_webform_form($form, &$form_state) {
       $list_dropdown[$this_list['id']] = $this_list['name'];
       $list_table = '<div class="aweber_webform_webform_radiotables" id="aweber_webform_webform_radiotable_' . $this_list['id'] . '">
         <h2 class="aweber_webform_header">Step 2: Select A Web Form or Split Test</h2>
-        <br>
+        <br />
         <strong>Web Forms</strong>
         <table class="aweber_webform_table">
         <tr>
