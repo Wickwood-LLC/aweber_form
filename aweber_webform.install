@@ -1,15 +1,12 @@
 <?php
-// $Id$
+// $Id$: aweber_webform.install, v1
 
 /**
  * @file
- * Install, update and uninstall functions for the XXX module.
+ * Install, update and uninstall functions for the aweber_webform module.
  */
 
 function aweber_webform_install() {
-    if (!db_table_exists('aweber_webform')) {
-        drupal_install_schema('aweber_webform');
-    }
     db_query("TRUNCATE TABLE {aweber_webform}");
     db_query("INSERT INTO {aweber_webform} (consumer_key, consumer_secret, access_key, access_secret, timestamp) VALUES ('', '', '', '', '0')");
 }
@@ -18,6 +15,9 @@ function aweber_webform_uninstall() {
     drupal_uninstall_schema('aweber_webform');
 }
 
+/**
+ * Implements hook_schema().
+ */
 function aweber_webform_schema() {
     $schema['aweber_webform'] = array(
         'description' => t('Stores consumer key, secret, access key, secret, webform web and js URLs, conversion statistics, list ID, and timestamp'),

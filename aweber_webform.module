@@ -1,11 +1,7 @@
 <?php
 
 require_once('aweber_api/aweber_api.php');
-require_once('aweber_webform.install');
-
-define('APP_ID', '96d89a0a');
-define('AUTH_URL', 'https://auth.aweber.com/1.0/oauth/authorize_app/');
-define('URL_PATH', file_create_url(drupal_get_path('module', 'aweber_webform')));
+require_once('aweber_webform.php');
 
 function aweber_webform_help($path, $arg) {
   switch ($path) {
@@ -73,9 +69,6 @@ function aweber_webform_menu() {
 
 function aweber_webform_form($form, &$form_state) {
 
-  if (!db_table_exists('aweber_webform')) {
-    aweber_webform_install();
-  }
   $result = db_query('SELECT consumer_key, consumer_secret, access_key, access_secret, js_url, lists, web_forms, split_tests, timestamp FROM {aweber_webform}');
   $row = $result->fetchAssoc();
   if (empty($row)) {
@@ -108,7 +101,7 @@ function aweber_webform_form($form, &$form_state) {
     $account = $aweber->getAccount($access_key, $access_secret);
   } catch (AWeberException $e) {
     //not authorized, prompt auth form
-    return get_Auth_Key_Form($form, $form_state);
+    return AWeber\WebForm\get_Auth_Key_Form($form, $form_state);
   }
 
   //if timed out or no data is stored, re-call the API
@@ -158,7 +151,7 @@ function aweber_webform_form($form, &$form_state) {
 
   //no web forms, prompt to make some
   if (empty($list_web_forms)) {
-    return get_Null_Form($form, $form_state);
+    return AWeber\WebForm\get_Null_Form($form, $form_state);
   }
   else {
     //for each list, add list data to index in array
@@ -269,7 +262,7 @@ function aweber_webform_form($form, &$form_state) {
     }
   }
 
-  $form['deauth'] = deauthorizeButton();
+  $form['deauth'] = AWeber\WebForm\deauthorizeButton();
 
   $form['aweber_webform_list'] = array(
     '#prefix'        => '<h2 class="aweber_webform_header">Step 1: Select A List</h2>',
@@ -281,7 +274,7 @@ function aweber_webform_form($form, &$form_state) {
     '#suffix'        => '</td><td>'
   );
 
-  $form['refresh'] = refreshButton();
+  $form['refresh'] = AWeber\WebForm\refreshButton();
 
   //add tables to page
   foreach ($list_tables as $this_table) {
@@ -296,9 +289,9 @@ function aweber_webform_form($form, &$form_state) {
    * the button is not what form_state has stored. To resolve this, I make 'fake'
    * buttons with the text of what it will change to, so the Drupal form will see
    * it as this this button was pressed, although the real button was pressed. */
-  $form['refresh2'] = refreshButtonFake();
-  $form['deauth2']  = deauthorizeButtonFake();
-  $form['submit2']  = submitButtonFake();
+  $form['refresh2'] = AWeber\WebForm\refreshButtonFake();
+  $form['deauth2']  = AWeber\WebForm\deauthorizeButtonFake();
+  $form['submit2']  = AWeber\WebForm\submitButtonFake();
 
   db_update('aweber_webform')->fields(array(
     'lists'       => json_encode($lists),
@@ -310,115 +303,14 @@ function aweber_webform_form($form, &$form_state) {
   return system_settings_form($form);
 }
 
-/**
- * Add a button to refresh the page
- */
-function refreshButton() {
-  return array(
-    '#prefix' => '<div class="aweber_webform_refresh">',
-    '#type'   => 'submit',
-    '#value'  => t('Refresh Lists'),
-    '#name'   => 'refresh',
-    '#suffix' => '<img class="aweber_webform_help" id="aweber_webform_helpRefresh" src="'
-    . URL_PATH . '/questionmark.png" alt=""></div>',
-  );
-}
-
-/**
- * Add a fake refresh button with the changed text
- * so the form state will recognize the pressed button
- */
-function refreshButtonFake() {
-  return array(
-    '#prefix' => '<div class="aweber_webform_fakebutton">',
-    '#type'   => 'submit',
-    '#value'  => t('Refreshing...'),
-    '#name'   => 'refresh',
-    '#suffix' => '</div>',
-  );
-}
-
-/**
- * Add a button to deauthorize the AWeber account
- */
-function deauthorizeButton() {
-  return array(
-    '#prefix' => '<div class="aweber_webform_deauthorize">',
-    '#type'   => 'submit',
-    '#value'  => t('Deauthorize Account'),
-    '#name'   => 'deauth',
-    '#suffix' => '<img class="aweber_webform_help" id="aweber_webform_helpDeauth" src="' 
-    . URL_PATH . '/questionmark.png" alt=""></div>',
-  );
-}
-
-/**
- * Add a fake deauth button with the changed text
- * so the form state will recognize the pressed button
- */
-function deauthorizeButtonFake() {
-  return array(
-    '#prefix' => '<div class="aweber_webform_fakebutton">',
-    '#type'   => 'submit',
-    '#value'  => t('Deauthorizing...'),
-    '#name'   => 'deauth',
-    '#suffix' => '</div>',
-  );
-}
-
-/**
- * Add a fake submit button with the changed text
- * so the form state will recognize the pressed button
- */
-function submitButtonFake() {
-  return array(
-    '#prefix' => '<div class="aweber_webform_fakebutton">',
-    '#type'   => 'submit',
-    '#value'  => t('Saving...'),
-    '#name'   => 'op',
-    '#suffix' => '</div>',
-  );
-}
-
-/**
- * Deauthorizes AWeber account by
- * emptying the table
- */
-function deauthorize() {
-  db_update('aweber_webform')
-    ->fields(array(
-      'consumer_key'     => '',
-      'consumer_secret'  => '',
-      'access_key'       => '',
-      'access_secret'    => '',
-      'js_url'           => '',
-      'lists'            => '',
-      'web_forms'        => '',
-      'split_tests'      => '',
-      'timestamp'        => '0',
-    ))->execute();
-}
-
-/**
- * Refreshs the page with a fresh API call
- * by setting timestamp to 0,
- * timing out the latest API call
- */
-function refresh() {
-  db_update('aweber_webform')
-    ->fields(array(
-      'timestamp' => '0',
-    ))->execute();
-}
-
 function aweber_webform_form_validate($form, &$form_state) {
   //if not the authorization form
   if (!isset($form_state['values']['aweber_webform_authkey'])) {
     if ($form_state['clicked_button']['#name'] == 'deauth') {
-      deauthorize();
+      AWeber\WebForm\deauthorize();
     }
     elseif ($form_state['clicked_button']['#name'] == 'refresh') {
-      refresh();
+      AWeber\WebForm\refresh();
     }
     else {
       //if a list was selected
@@ -467,49 +359,7 @@ function aweber_webform_form_validate($form, &$form_state) {
   return system_settings_form($form);
 }
 
-/**
- * Creates the form that prompts for
- * account authorization
- */
-function get_Auth_Key_Form($form, &$form_state) {
-  $form['aweber_webform_authkey'] = array(
-    '#type'          => 'textarea',
-    '#title'         => t('Authorization Key'),
-    '#default_value' => t(''),
-    '#cols'          => 30,
-    '#rows'          => 2,
-    '#maxlength'     => 200,
-    '#description'   => t(''),
-    '#required'      => TRUE,
-    '#suffix'        => '&nbsp;<a href="' . AUTH_URL . APP_ID . '" target="_blank">Click here to obtain an authorization key and copy it into the box above.</a><br>',
-  );
 
-  $form['submit2'] = submitButtonFake();
 
-  return system_settings_form($form);
-}
 
-/**
- * Creates the form that prompts for
- * user to create a web form
- */
-function get_Null_Form($form, &$form_state) {
-  $form['aweber_webform_null_text'] = array(
-    '#prefix' => 'This AWeber account does not currently have any completed web forms.<br>',
-    '#suffix' => 'Please <a href="https://www.aweber.com/users/web_forms/index" target="_blank">create a web form</a> in order to place it on your blog.<br><div id="aweber_webform_null">',
-  );
-
-  $form['aweber_webform_null'] = array(
-    '#prefix' => '</div>',
-    '#weight' => 1001,
-    '#suffix' => '<br>',
-  );
-
-  $form['refresh']  = refreshButton();
-  $form['deauth']   = deauthorizeButton();
-  $form['refresh2'] = refreshButtonFake();
-  $form['deauth2']  = deauthorizeButtonFake();
-
-  return system_settings_form($form);
-}
 
