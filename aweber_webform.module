@@ -3,6 +3,9 @@
 require_once('aweber_api/aweber_api.php');
 require_once('aweber_webform.php');
 
+/**
+ * Help menu block
+ */
 function aweber_webform_help($path, $arg) {
   switch ($path) {
   case "admin/help#aweber_webform":
@@ -20,7 +23,9 @@ function aweber_webform_help($path, $arg) {
   }
 }
 
-
+/**
+ * Info block
+ */
 function aweber_webform_block_info() {
   $blocks['aweber_webform'] = array(
     'info'  => t('AWeber Web Form'), //The name that will appear in the block list.
@@ -29,7 +34,12 @@ function aweber_webform_block_info() {
   return $blocks;
 }
 
-
+/**
+ * Block View
+ * Displays the Javascript URL of the
+ * selected webform or nothing if one
+ * has not been selected
+ */
 function aweber_webform_block_view($delta = ' ') {
   switch ($delta) {
   case 'aweber_webform':
@@ -51,7 +61,9 @@ function aweber_webform_block_view($delta = ' ') {
   return $block;
 }
 
-
+/**
+ * Menu Info
+ */
 function aweber_webform_menu() {
   $items = array();
 
@@ -66,9 +78,15 @@ function aweber_webform_menu() {
   return $items;
 }
 
-
+/**
+ * Returns a Drupal form
+ * Either requesting AWeber authorization,
+ * Alerting there are no webforms in the account,
+ * Or prompting to select a webform
+ */
 function aweber_webform_form($form, &$form_state) {
 
+  //Get data
   $result = db_query('SELECT consumer_key, consumer_secret, access_key, access_secret, js_url, lists, web_forms, split_tests, timestamp FROM {aweber_webform}');
   $row = $result->fetchAssoc();
   if (empty($row)) {
@@ -262,8 +280,10 @@ function aweber_webform_form($form, &$form_state) {
     }
   }
 
+  //Add deauthorize button
   $form['deauth'] = AWeber\WebForm\deauthorizeButton();
 
+  //Add list selection
   $form['aweber_webform_list'] = array(
     '#prefix'        => '<h2 class="aweber_webform_header">Step 1: Select A List</h2>',
     '#type'          => 'select',
@@ -274,6 +294,7 @@ function aweber_webform_form($form, &$form_state) {
     '#suffix'        => '</td><td>'
   );
 
+  //Add refresh button
   $form['refresh'] = AWeber\WebForm\refreshButton();
 
   //add tables to page
@@ -303,6 +324,9 @@ function aweber_webform_form($form, &$form_state) {
   return system_settings_form($form);
 }
 
+/**
+ * Check form submissions
+ */
 function aweber_webform_form_validate($form, &$form_state) {
   //if not the authorization form
   if (!isset($form_state['values']['aweber_webform_authkey'])) {
