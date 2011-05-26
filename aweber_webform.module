@@ -113,7 +113,7 @@ function aweber_webform_form($form, &$form_state) {
     $account = $aweber->getAccount($access_key, $access_secret);
   } catch (AWeberException $e) {
     //User is not authorized, so return authorization form.
-    return AWeber\WebForm\get_Auth_Key_Form($form, $form_state);
+    return AWeber_Webform::get_Auth_Key_Form($form, $form_state);
   }
 
   //If timed out or no data is stored, re-call the API.
@@ -163,7 +163,7 @@ function aweber_webform_form($form, &$form_state) {
 
   //There are no web forms, return relevant form.
   if (empty($list_web_forms)) {
-    return AWeber\WebForm\get_Null_Form($form, $form_state);
+    return AWeber_Webform::get_Null_Form($form, $form_state);
   }
   else {
     //For each list, adds list data to the index in the array.
@@ -275,7 +275,7 @@ function aweber_webform_form($form, &$form_state) {
   }
 
   //Adds the deauthorize button.
-  $form['deauth'] = AWeber\WebForm\deauthorizeButton();
+  $form['deauth'] = AWeber_Webform::deauthorizeButton();
 
   //Adds the list selection.
   $form['aweber_webform_list'] = array(
@@ -289,7 +289,7 @@ function aweber_webform_form($form, &$form_state) {
   );
 
   //Adds the refresh button
-  $form['refresh'] = AWeber\WebForm\refreshButton();
+  $form['refresh'] = AWeber_Webform::refreshButton();
 
   //Adds the tables to the page.
   foreach ($list_tables as $this_table) {
@@ -304,9 +304,9 @@ function aweber_webform_form($form, &$form_state) {
    * the button is not what form_state has stored. To resolve this, I make 'fake'
    * buttons with the text of what it will change to, so the Drupal form will see
    * it as this this button was pressed, although the real button was pressed. */
-  $form['refresh2'] = AWeber\WebForm\refreshButtonFake();
-  $form['deauth2']  = AWeber\WebForm\deauthorizeButtonFake();
-  $form['submit2']  = AWeber\WebForm\submitButtonFake();
+  $form['refresh2'] = AWeber_Webform::refreshButtonFake();
+  $form['deauth2']  = AWeber_Webform::deauthorizeButtonFake();
+  $form['submit2']  = AWeber_Webform::submitButtonFake();
 
   db_update('aweber_webform')->fields(array(
     'lists'       => json_encode($lists),
@@ -335,10 +335,10 @@ function aweber_webform_form_validate($form, &$form_state) {
   //Checks if the submitted form was not the authorization form.
   if (!isset($form_state['values']['aweber_webform_authkey'])) {
     if ($form_state['clicked_button']['#name'] == 'deauth') {
-      AWeber\WebForm\deauthorize();
+      AWeber_Webform::deauthorize();
     }
     elseif ($form_state['clicked_button']['#name'] == 'refresh') {
-      AWeber\WebForm\refresh();
+      AWeber_Webform::refresh();
     }
     else {
       //Checks if a list was selected.
