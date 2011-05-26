@@ -1,24 +1,17 @@
 <?php
 
-require_once('aweber_api/aweber_api.php');
-require_once('aweber_webform.php');
-
 /**
  * Implements hook_help().
  */
 function aweber_webform_help($path, $arg) {
-  switch ($path) {
-  case "admin/help#aweber_webform":
-    return '<h3>' . t("About") . '</h3><p>' . t("The AWeber Web Form module allows users with an AWeber account to add an")
-      . '&nbsp;<a href="http://www.aweber.com/web-forms.htm">' . t("AWeber web form") . '</a>&nbsp;' . ("to a page.")
-      . '</p><h3>' . t("Uses") . '</h3><dl><dt>' . t("Installing an AWeber web form") . '</dt><dd>'
-      . t("You can start installing an AWeber web form that you have created -")
-      . '&nbsp;<a href="http://www.aweber.com/faq/questions/598" target="_blank">'
-      . t("consult the AWeber knowledge base") . '</a>&nbsp;' . t("for a walkthrough.")
-      . '</dd></dl><dl><dt>' . t("Evaluate web form performance") . '</dt><dd>'
-      . t("View web form statistics and performance data in your Drupal admin.") . '</dd></dl><dl><dt>'
-      . t("Preview web forms before publishing") . '</dt><dd>'
-      . t("See what a form looks like before adding it to your site.") . '</dd></dl>';
+  if ($path == "admin/help#aweber_webform") {
+    return t('<h3>About</h3><p>The AWeber Web Form module allows users with an AWeber account to add an 
+      <a href="http://www.aweber.com/web-forms.htm">AWeber web form</a> to a page.</p><h3>Uses</h3>
+      <dl><dt>Installing an AWeber web form</dt><dd>You can start installing an AWeber web form that you have 
+      created - <a href="http://www.aweber.com/faq/questions/598" target="_blank">consult the AWeber knowledge 
+      base</a> for a walkthrough.</dd></dl><dl><dt>Evaluate web form performance</dt><dd>View web form 
+      statistics and performance data in your Drupal admin.</dd></dl><dl><dt>Preview web forms before publishing
+      </dt><dd>See what a form looks like before adding it to your site.</dd></dl>');
     break;
   }
 }
@@ -36,25 +29,23 @@ function aweber_webform_block_info() {
 
 /**
  * Implements hook_block_view().
+ *
  * Displays the Javascript URL of the selected webform or nothing if one
  * has not been selected.
  */
 function aweber_webform_block_view($delta = ' ') {
-  switch ($delta) {
-  case 'aweber_webform':
-    $block['subject'] = t('');
-    $result = db_query("SELECT js_url FROM {aweber_webform}");
-    foreach ($result as $row) {
-      $js_url = $row->js_url;
+  $block['subject'] = t('');
+  $result = db_query("SELECT js_url FROM {aweber_webform}");
+  foreach ($result as $row) {
+    $js_url = $row->js_url;
+  }
+  if (user_access('access content')) {
+    if (empty($js_url)) {
+      $block['content'] = t('');
     }
-    if (user_access('access content')) {
-      if (empty($js_url)) {
-        $block['content'] = t('');
+    else {
       //If the web form is in db (selected), return Javascript for it.
-      }
-      else {
-        $block['content'] = "<script type=\"text/javascript\" src=\"{$js_url}\"></script>";
-      }
+      $block['content'] = "<script type=\"text/javascript\" src=\"{$js_url}\"></script>";
     }
   }
   return $block;
@@ -79,12 +70,15 @@ function aweber_webform_menu() {
 
 /**
  * Implements hook_form().
+ *
  * Returns one of the following Drupal forms:
  * a form that requests AWeber authorization,
  * a form that alerts there are no webforms in the account,
  * or a form prompting to select a webform.
  */
 function aweber_webform_form($form, &$form_state) {
+  require_once('aweber_api/aweber_api.php');
+  require_once('aweber_webform.php');
 
   //Gets data from database.
   $result = db_query('SELECT consumer_key, consumer_secret, access_key, access_secret, js_url, lists, web_forms, split_tests, timestamp FROM {aweber_webform}');
@@ -325,14 +319,19 @@ function aweber_webform_form($form, &$form_state) {
 }
 
 /**
- * Implements hook_form_validate(). If the submitted for was the authorization
- * form, it will try to authorize the account and store their data. If it
+ * Validates form submissions.
+ *
+ * If the submitted form was the authorization form, it will try to
+ * authorize the account and store their data. If it
  * was the refresh button from any of the forms, it will reset the timestamp
  * so the code will re-call the API. If the webform select form was submitted,
  * it will check that all data fields were entered and it will store the
  * data.
  */
 function aweber_webform_form_validate($form, &$form_state) {
+  require_once('aweber_api/aweber_api.php');
+  require_once('aweber_webform.php');
+
   //Checks if the submitted form was not the authorization form.
   if (!isset($form_state['values']['aweber_webform_authkey'])) {
     if ($form_state['clicked_button']['#name'] == 'deauth') {
@@ -375,6 +374,7 @@ function aweber_webform_form_validate($form, &$form_state) {
     form_set_error('aweber_webform_authkey', t('The Authorization Key provided was not valid.'));
     return system_settings_form($form);
   }
+
   //Stores the data for the authorized account.
   list($consumer_key, $consumer_secret, $access_key, $access_secret) = $data;
   db_update('aweber_webform')->fields(array(

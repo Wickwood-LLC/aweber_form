@@ -1,76 +1,78 @@
 <?php
-// $Id$: aweber_webform.install, v1
 
 /**
  * @file
  * Install, update and uninstall functions for the aweber_webform module.
  */
 
+
+/**
+ * Implements hook_install().
+ */
 function aweber_webform_install() {
-    db_query("TRUNCATE TABLE {aweber_webform}");
-    db_query("INSERT INTO {aweber_webform} (consumer_key, consumer_secret, access_key, access_secret, timestamp) VALUES ('', '', '', '', '0')");
+  db_query("INSERT INTO {aweber_webform} (consumer_key, consumer_secret, access_key, access_secret, timestamp) VALUES ('', '', '', '', '0')");
 }
 
 /**
  * Implements hook_uninstall().
  */
 function aweber_webform_uninstall() {
-    drupal_uninstall_schema('aweber_webform');
+  drupal_uninstall_schema('aweber_webform');
 }
 
 /**
  * Implements hook_schema().
  */
 function aweber_webform_schema() {
-    $schema['aweber_webform'] = array(
-        'description' => t('Stores consumer key, secret, access key, secret, webform web and js URLs, conversion statistics, list ID, and timestamp'),
-        'fields' => array(
-            'consumer_key' => array(
-                'type' => 'varchar',
-                'length' => 50,
-                'not null' => TRUE,
-            ),
-            'consumer_secret' => array(
-                'type' => 'varchar',
-                'length' => 50,
-                'not null' => TRUE,
-            ),
-            'access_key' => array(
-                'type' => 'varchar',
-                'length' => 50,
-                'not null' => TRUE,
-            ),
-            'access_secret' => array(
-                'type' => 'varchar',
-                'length' => 50,
-                'not null' => TRUE,
-            ),
-            'js_url' => array(
-                'type' => 'varchar',
-                'length' => 250,
-            ),
-            'list_id' => array(
-                'type' => 'varchar',
-                'length' => 50,
-            ),
-            'lists' => array(
-                'type' => 'text',
-                'size' => 'big',
-            ),
-            'web_forms' => array(
-                'type' => 'text',
-                'size' => 'big',
-            ),
-            'split_tests' => array(
-                'type' => 'text',
-                'size' => 'big',
-            ),
-            'timestamp' => array(
-                'type' => 'int',
-            ),
-        ),
-    );
+  $schema['aweber_webform'] = array(
+    'description' => t('Stores consumer key, secret, access key, secret, webform web and js URLs, conversion statistics, list ID, and timestamp'),
+    'fields' => array(
+      'consumer_key' => array(
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => TRUE,
+      ),
+      'consumer_secret' => array(
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => TRUE,
+      ),
+      'access_key' => array(
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => TRUE,
+      ),
+      'access_secret' => array(
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => TRUE,
+      ),
+      'js_url' => array(
+        'type' => 'varchar',
+        'length' => 250,
+      ),
+      'list_id' => array(
+        'type' => 'varchar',
+        'length' => 50,
+      ),
+      'lists' => array(
+        'type' => 'text',
+        'size' => 'big',
+      ),
+      'web_forms' => array(
+        'type' => 'text',
+        'size' => 'big',
+      ),
+      'split_tests' => array(
+        'type' => 'text',
+        'size' => 'big',
+      ),
+      'timestamp' => array(
+        'type' => 'int',
+      ),
+    ),
+  );
 
-    return $schema;
+  return $schema;
 }
 
