@@ -8,8 +8,7 @@ define('URL_PATH', file_create_url(drupal_get_path('module', 'aweber_webform')))
 
 
 /**
- * Creates the form that prompts for
- * account authorization
+ * Creates the form that prompts for account authorization.
  */
 function get_Auth_Key_Form($form, &$form_state) {
   $form['aweber_webform_authkey'] = array(
@@ -30,8 +29,7 @@ function get_Auth_Key_Form($form, &$form_state) {
 }
 
 /**
- * Creates the form that prompts for
- * user to create a web form
+ * Creates the form that prompts for the user to create a web form.
  */
 function get_Null_Form($form, &$form_state) {
   $form['aweber_webform_null_text'] = array(
@@ -54,8 +52,7 @@ function get_Null_Form($form, &$form_state) {
 }
 
 /**
- * Deauthorizes AWeber account by
- * emptying the table
+ * Deauthorizes AWeber account by emptying the db table.
  */
 function deauthorize() {
   db_update('aweber_webform')
@@ -73,9 +70,8 @@ function deauthorize() {
 }
 
 /**
- * Refreshs the page with a fresh API call
- * by setting timestamp to 0,
- * timing out the latest API call
+ * Refreshs the page with a fresh API call by setting timestamp to 0,
+ * timing out the latest API call.
  */
 function refresh() {
   db_update('aweber_webform')
@@ -85,7 +81,7 @@ function refresh() {
 }
 
 /**
- * Add a button to refresh the page
+ * Adds a button to refresh the page.
  */
 function refreshButton() {
   return array(
@@ -99,8 +95,7 @@ function refreshButton() {
 }
 
 /**
- * Add a fake refresh button with the changed text
- * so the form state will recognize the pressed button
+ * Adds a fake refresh button.
  */
 function refreshButtonFake() {
   return array(
@@ -113,7 +108,7 @@ function refreshButtonFake() {
 }
 
 /**
- * Add a button to deauthorize the AWeber account
+ * Adds a button to deauthorize the AWeber account.
  */
 function deauthorizeButton() {
   return array(
@@ -127,8 +122,7 @@ function deauthorizeButton() {
 }
 
 /**
- * Add a fake deauth button with the changed text
- * so the form state will recognize the pressed button
+ * Adds a fake deauth button.
  */
 function deauthorizeButtonFake() {
   return array(
@@ -141,8 +135,7 @@ function deauthorizeButtonFake() {
 }
 
 /**
- * Add a fake submit button with the changed text
- * so the form state will recognize the pressed button
+ * Adds a fake submit button.
  */
 function submitButtonFake() {
   return array(
