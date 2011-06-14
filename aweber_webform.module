@@ -78,7 +78,7 @@ function aweber_webform_menu() {
  */
 function aweber_webform_form($form, &$form_state) {
   require_once('aweber_api/aweber_api.php');
-  require_once('aweber_webform.php');
+  require_once('aweber_webform.admin.inc');
 
   //Gets data from database.
   $result = db_query('SELECT consumer_key, consumer_secret, access_key, access_secret, js_url, lists, web_forms, split_tests, timestamp FROM {aweber_webform}');
@@ -330,7 +330,7 @@ function aweber_webform_form($form, &$form_state) {
  */
 function aweber_webform_form_validate($form, &$form_state) {
   require_once('aweber_api/aweber_api.php');
-  require_once('aweber_webform.php');
+  require_once('aweber_webform.admin.inc');
 
   //Checks if the submitted form was not the authorization form.
   if (!isset($form_state['values']['aweber_webform_authkey'])) {
@@ -359,7 +359,7 @@ function aweber_webform_form_validate($form, &$form_state) {
         form_set_error('aweber_webform_list', 'List Select field is required');
       }
     }
-    return system_settings_form($form);
+    return $form;
   }
 
   $authkey = $form_state['values']['aweber_webform_authkey'];
@@ -369,10 +369,10 @@ function aweber_webform_form_validate($form, &$form_state) {
     $data = AWeberAPI::getDataFromAweberID($authkey);
   } catch (AweberException $e) {
     form_set_error('aweber_webform_authkey', t('The Authorization Key provided was not valid.'));
-    return system_settings_form($form);
+    return $form;
   } if (empty($data)) {
     form_set_error('aweber_webform_authkey', t('The Authorization Key provided was not valid.'));
-    return system_settings_form($form);
+    return $form;
   }
 
   //Stores the data for the authorized account.
@@ -384,7 +384,7 @@ function aweber_webform_form_validate($form, &$form_state) {
     'access_secret'   => $access_secret,
   ))->execute();
 
-  return system_settings_form($form);
+  return $form;
 }
 
 
