@@ -5,11 +5,11 @@
  */
 function aweber_webform_help($path, $arg) {
   if ($path == "admin/help#aweber_webform") {
-    return t('<h3>About</h3><p>The AWeber Web Form module allows users with an AWeber account to add an 
+    return t('<h3>About</h3><p>The AWeber Web Form module allows users with an AWeber account to add an
       <a href="http://www.aweber.com/web-forms.htm">AWeber web form</a> to a page.</p><h3>Uses</h3>
-      <dl><dt>Installing an AWeber web form</dt><dd>You can start installing an AWeber web form that you have 
-      created - <a href="http://www.aweber.com/faq/questions/598" target="_blank">consult the AWeber knowledge 
-      base</a> for a walkthrough.</dd></dl><dl><dt>Evaluate web form performance</dt><dd>View web form 
+      <dl><dt>Installing an AWeber web form</dt><dd>You can start installing an AWeber web form that you have
+      created - <a href="http://www.aweber.com/faq/questions/598" target="_blank">consult the AWeber knowledge
+      base</a> for a walkthrough.</dd></dl><dl><dt>Evaluate web form performance</dt><dd>View web form
       statistics and performance data in your Drupal admin.</dd></dl><dl><dt>Preview web forms before publishing
       </dt><dd>See what a form looks like before adding it to your site.</dd></dl>');
     break;
@@ -183,7 +183,7 @@ function aweber_webform_form($form, &$form_state) {
     foreach ($list_web_forms as $this_list_data) {
       $this_list = $this_list_data['list'];
       $list_dropdown[$this_list['id']] = $this_list['name'];
-      $list_table = '<div class="aweber_webform_webform_radiotables" id="aweber_webform_webform_radiotable_' . $this_list['id'] . '">
+      $list_table = t('<div class="aweber_webform_webform_radiotables" id="aweber_webform_webform_radiotable_') . $this_list['id'] . t('">
         <h2 class="aweber_webform_header">Step 2: Select A Web Form or Split Test</h2>
         <br />
         <strong>Web Forms</strong>
@@ -197,7 +197,7 @@ function aweber_webform_form($form, &$form_state) {
         <th><label class="aweber_webform_help aweber_webform_table_unique_displays">Unique Displays</label></th>
         <th><label class="aweber_webform_help aweber_webform_table_unique_conv">S/UD</label></th>
         <th><label class="aweber_webform_help aweber_webform_table_preview">Preview</label></th>
-        </tr>';
+        </tr>');
       //For each web form, add a row.
       foreach ($this_list_data['web_forms'] as $this_form) {
         $checked = "";
@@ -205,22 +205,22 @@ function aweber_webform_form($form, &$form_state) {
           $default_list = $this_list['id'];
           $checked = 'checked="checked"';
         }
-        $list_table .= '<tr>
-          <td style="text-align:center;"><input type="radio" name="aweber_webform_webform_' . $this_list['id'] .
-          '" value="' . $this_form['data']['javascript_source_link'] . '" ' . $checked . ' class="form-radio"/></td>
-          <td>' . $this_form['data']['name'] . '</td>
-          <td>' . $this_form['data']['total_displays'] . '</td>
-          <td>' . $this_form['data']['total_submissions'] . '</td>
-          <td>' . number_format($this_form['data']['conversion_percentage'], 1) . '%</td>
-          <td>' . $this_form['data']['total_unique_displays'] . '</td>
-          <td>' . number_format($this_form['data']['unique_conversion_percentage'], 1) . '%</td>
-          <td><a href="' . $this_form['data']['html_source_link'] . '" target="_blank">Preview</a></td>
-          </tr>';
+        $list_table .= t('<tr>
+          <td style="text-align:center;"><input type="radio" name="aweber_webform_webform_') . $this_list['id'] .
+          t('" value="') . $this_form['data']['javascript_source_link'] . t('"') . ' ' . $checked . ' ' . t('class="form-radio"/></td>
+          <td>') . $this_form['data']['name'] . t('</td>
+          <td>') . $this_form['data']['total_displays'] . t('</td>
+          <td>') . $this_form['data']['total_submissions'] . t('</td>
+          <td>') . number_format($this_form['data']['conversion_percentage'], 1) . t('%</td>
+          <td>') . $this_form['data']['total_unique_displays'] . t('</td>
+          <td>') . number_format($this_form['data']['unique_conversion_percentage'], 1) . t('%</td>
+          <td><a href="') . $this_form['data']['html_source_link'] . t('" target="_blank">Preview</a></td>
+          </tr>');
       }
-      $list_table .= '</table>';
+      $list_table .= t('</table>');
       //If there are split tests, make table a for them.
       if (!empty($this_list_data['split_tests'])) {
-        $list_table .= '<br/><strong>Split Tests</strong>
+        $list_table .= t('<br/><strong>Split Tests</strong>
           <table class="aweber_webform_table">
           <tr>
           <th></th>
@@ -232,43 +232,43 @@ function aweber_webform_form($form, &$form_state) {
           <th><label class="aweber_webform_help aweber_webform_table_conv">S/D</label></th>
           <th><label class="aweber_webform_help aweber_webform_table_unique_displays">Unique Displays</labels></th>
           <th><label class="aweber_webform_help aweber_webform_table_unique_conv">S/UD</label></th>
-          </tr>';
+          </tr>');
         //For each split test, add a row with corresponding class name.
         foreach ($this_list_data['split_tests'] as $this_form) {
           $checked = "";
           if ($this_form['data']['javascript_source_link'] == $js_url) {
             $default_list = $this_list['id'];
-            $checked = 'checked="checked"';
+            $checked = t('checked="checked"');
             $currentFormName = $this_form['data']['name'];
             $currentFormListName = $this_list['name'];
           }
-          $rowClassName = 'class="aweber_webform_splittest_border"';
-          $list_table .= '<tr><td ' . $rowClassName . ' style="text-align:center;">
-            <input type="radio" name="aweber_webform_webform_'
-            . $this_list['id'] . '" value="'
-            . $this_form['data']['javascript_source_link'] . '" ' . $checked . ' class="form-radio"/></td>
-            <td ' . $rowClassName . '>' . $this_form['data']['name'] . '</td>';
+          $rowClassName = t('class="aweber_webform_splittest_border"');
+          $list_table .= t('<tr><td') . ' ' . $rowClassName . ' ' . t('style="text-align:center;">
+            <input type="radio" name="aweber_webform_webform_')
+            . $this_list['id'] . t('" value="')
+            . $this_form['data']['javascript_source_link'] . t('"') . ' ' . $checked . ' ' . t('class="form-radio"/></td>
+            <td ') . $rowClassName . t('>') . $this_form['data']['name'] . t('</td>');
           $newrow = FALSE;
           foreach ($this_form['components']['data']['entries'] as $this_component) {
             if ($newrow) {
-              $list_table .= '<tr><td ' . $rowClassName . '></td><td ' . $rowClassName . '></td>';
+              $list_table .= t('<tr><td') . ' ' . $rowClassName . t('></td><td') . ' ' . $rowClassName . t('></td>');
             }
             if (!$newrow) $newrow = TRUE;
-            $list_table .= '<td ' . $rowClassName . '>' . $this_component['name'] . '</td>
-              <td ' . $rowClassName . '>' . $this_component['weight'] . '%</td>
-              <td ' . $rowClassName . '>' . $this_component['total_displays'] . '</td>
-              <td ' . $rowClassName . '>' . $this_component['total_submissions'] . '</td>
-              <td ' . $rowClassName . '>' . number_format($this_component['conversion_percentage'], 1) . '%</td>
-              <td ' . $rowClassName . '>' . $this_component['total_unique_displays'] . '</td>
-              <td ' . $rowClassName . '>' . number_format($this_component['unique_conversion_percentage'], 1) . '%</td>
-              </tr>';
-            $rowClassName = 'class="aweber_webform_splittest_noborder"';
+            $list_table .= t('<td') . ' ' . $rowClassName . t('>') . $this_component['name'] . t('</td>
+              <td') . ' ' . $rowClassName . '>' . $this_component['weight'] . t('%</td>
+              <td') . ' ' . $rowClassName . '>' . $this_component['total_displays'] . t('</td>
+              <td') . ' ' . $rowClassName . '>' . $this_component['total_submissions'] . t('</td>
+              <td') . ' ' . $rowClassName . '>' . number_format($this_component['conversion_percentage'], 1) . t('%</td>
+              <td') . ' ' . $rowClassName . '>' . $this_component['total_unique_displays'] . t('</td>
+              <td') . ' ' . $rowClassName . '>' . number_format($this_component['unique_conversion_percentage'], 1) . t('%</td>
+              </tr>');
+            $rowClassName = t('class="aweber_webform_splittest_noborder"');
           }
         }
-        $list_table .= '</table></div>';
+        $list_table .= t('</table></div>');
       }
       else {
-        $list_table .= '</div>';
+        $list_table .= t('</div>');
       }
       array_push($list_tables, $list_table);
     }
@@ -279,13 +279,13 @@ function aweber_webform_form($form, &$form_state) {
 
   //Adds the list selection.
   $form['aweber_webform_list'] = array(
-    '#prefix'        => '<h2 class="aweber_webform_header">Step 1: Select A List</h2>',
+    '#prefix'        => t('<h2 class="aweber_webform_header">Step 1: Select A List</h2>'),
     '#type'          => 'select',
     '#title'         => t(''),
     '#default_value' => $default_list,
     '#options'       => $list_dropdown,
     '#description'   => t(''),
-    '#suffix'        => '</td><td>'
+    '#suffix'        => t('</td><td>')
   );
 
   //Adds the refresh button
@@ -352,11 +352,11 @@ function aweber_webform_form_validate($form, &$form_state) {
           ))->execute();
         }
         else {
-          form_set_error('aweber_webform_webform', 'Form Select field is required');
+          form_set_error('aweber_webform_webform', t('Form Select field is required'));
         }
       }
       else {
-        form_set_error('aweber_webform_list', 'List Select field is required');
+        form_set_error('aweber_webform_list', t('List Select field is required'));
       }
     }
     return $form;

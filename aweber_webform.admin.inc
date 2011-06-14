@@ -21,8 +21,8 @@ class AWeber_Webform {
       '#maxlength'     => 200,
       '#description'   => t(''),
       '#required'      => TRUE,
-      '#suffix'        => '&nbsp;<a href="' . self::AUTH_URL . self::APP_ID .
-        '" target="_blank">Click here to obtain an authorization key and copy it into the box above.</a><br>',
+      '#suffix'        => t('&nbsp;<a href="') . self::AUTH_URL . self::APP_ID .
+        t('" target="_blank">Click here to obtain an authorization key and copy it into the box above.</a><br />'),
     );
 
     $form['submit2'] = self::submitButtonFake();
@@ -35,15 +35,15 @@ class AWeber_Webform {
    */
   public static function get_Null_Form($form, &$form_state) {
     $form['aweber_webform_null_text'] = array(
-      '#prefix' => 'This AWeber account does not currently have any completed web forms.<br>',
-      '#suffix' => 'Please <a href="https://www.aweber.com/users/web_forms/index" target="_blank">
-        create a web form</a> in order to place it on your blog.<br><div id="aweber_webform_null">',
+      '#prefix' => t('This AWeber account does not currently have any completed web forms.<br />'),
+      '#suffix' => t('Please <a href="https://www.aweber.com/users/web_forms/index" target="_blank">
+        create a web form</a> in order to place it on your blog.<br /><div id="aweber_webform_null">'),
     );
 
     $form['aweber_webform_null'] = array(
-      '#prefix' => '</div>',
+      '#prefix' => t('</div>'),
       '#weight' => 1001,
-      '#suffix' => '<br>',
+      '#suffix' => t('<br />'),
     );
 
     $form['refresh']  = self::refreshButton();
@@ -88,12 +88,12 @@ class AWeber_Webform {
    */
   public static function refreshButton() {
     return array(
-      '#prefix' => '<div class="aweber_webform_refresh">',
+      '#prefix' => t('<div class="aweber_webform_refresh">'),
       '#type'   => 'submit',
       '#value'  => t('Refresh Lists'),
       '#name'   => 'refresh',
-      '#suffix' => '<img class="aweber_webform_help" id="aweber_webform_helpRefresh" src="'
-        . file_create_url(drupal_get_path('module', 'aweber_webform')) . '/questionmark.png" alt=""></div>',
+      '#suffix' => t('<img class="aweber_webform_help" id="aweber_webform_helpRefresh" src="')
+        . file_create_url(drupal_get_path('module', 'aweber_webform')) . t('/questionmark.png" alt=""></div>'),
     );
   }
 
@@ -102,11 +102,11 @@ class AWeber_Webform {
    */
   public static function refreshButtonFake() {
     return array(
-      '#prefix' => '<div class="aweber_webform_fakebutton">',
+      '#prefix' => t('<div class="aweber_webform_fakebutton">'),
       '#type'   => 'submit',
       '#value'  => t('Refreshing...'),
       '#name'   => 'refresh',
-      '#suffix' => '</div>',
+      '#suffix' => t('</div>'),
     );
   }
 
@@ -115,12 +115,12 @@ class AWeber_Webform {
    */
   public static function deauthorizeButton() {
     return array(
-      '#prefix' => '<div class="aweber_webform_deauthorize">',
+      '#prefix' => t('<div class="aweber_webform_deauthorize">'),
       '#type'   => 'submit',
       '#value'  => t('Deauthorize Account'),
       '#name'   => 'deauth',
-      '#suffix' => '<img class="aweber_webform_help" id="aweber_webform_helpDeauth" src="' 
-        . file_create_url(drupal_get_path('module', 'aweber_webform')) . '/questionmark.png" alt=""></div>',
+      '#suffix' => t('<img class="aweber_webform_help" id="aweber_webform_helpDeauth" src="')
+        . file_create_url(drupal_get_path('module', 'aweber_webform')) . t('/questionmark.png" alt=""></div>'),
     );
   }
 
@@ -129,11 +129,11 @@ class AWeber_Webform {
    */
   public static function deauthorizeButtonFake() {
     return array(
-      '#prefix' => '<div class="aweber_webform_fakebutton">',
+      '#prefix' => t('<div class="aweber_webform_fakebutton">'),
       '#type'   => 'submit',
       '#value'  => t('Deauthorizing...'),
       '#name'   => 'deauth',
-      '#suffix' => '</div>',
+      '#suffix' => t('</div>'),
     );
   }
 
@@ -142,11 +142,11 @@ class AWeber_Webform {
    */
   public static function submitButtonFake() {
     return array(
-      '#prefix' => '<div class="aweber_webform_fakebutton">',
+      '#prefix' => t('<div class="aweber_webform_fakebutton">'),
       '#type'   => 'submit',
       '#value'  => t('Saving...'),
       '#name'   => 'op',
-      '#suffix' => '</div>',
+      '#suffix' => t('</div>'),
     );
   }
 
