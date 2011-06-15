@@ -29,7 +29,7 @@ class AWeber_Webform {
 
     $form['submit'] = array(
       '#type' => 'submit',
-      '#value' => t('Submit'),
+      '#value' => t('Authorize'),
     );
 
     return $form;
