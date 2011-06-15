@@ -76,9 +76,6 @@ jQuery(document).ready(function($){
 
     $('div.aweber_webform_button_loading').hide();
 
-    //Hide save button on null form
-    $('#aweber_webform_null #edit-submit').hide();
-
     $('input[name="op"]').live('click', function() {
         $(this).val('Saving...');
     });

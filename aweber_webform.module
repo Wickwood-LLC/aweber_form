@@ -308,6 +308,11 @@ function aweber_webform_form($form, &$form_state) {
   $form['deauth2']  = AWeber_Webform::deauthorizeButtonFake();
   $form['submit2']  = AWeber_Webform::submitButtonFake();
 
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+
   db_update('aweber_webform')->fields(array(
     'lists'       => json_encode($lists),
     'web_forms'   => json_encode($web_forms),
@@ -315,7 +320,7 @@ function aweber_webform_form($form, &$form_state) {
     'timestamp'   => time() + (5 * 60),
   ))->execute();
 
-  return system_settings_form($form);
+  return $form;
 }
 
 /**

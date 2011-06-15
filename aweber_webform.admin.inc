@@ -27,7 +27,12 @@ class AWeber_Webform {
 
     $form['submit2'] = self::submitButtonFake();
 
-    return system_settings_form($form);
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Submit'),
+    );
+
+    return $form;
   }
 
   /**
@@ -51,7 +56,7 @@ class AWeber_Webform {
     $form['refresh2'] = self::refreshButtonFake();
     $form['deauth2']  = self::deauthorizeButtonFake();
 
-    return system_settings_form($form);
+    return $form;
   }
 
   /**
