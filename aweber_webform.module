@@ -298,16 +298,6 @@ function aweber_webform_form($form, &$form_state) {
     );
   }
 
-  /* On button click, buttons will change text. Since the text changes,
-   * Drupal will not recognize that button as 'clicked_button' in the form_state
-   * because such a button with said attributes does not exist since the text of
-   * the button is not what form_state has stored. To resolve this, I make 'fake'
-   * buttons with the text of what it will change to, so the Drupal form will see
-   * it as this this button was pressed, although the real button was pressed. */
-  $form['refresh2'] = AWeber_Webform::refreshButtonFake();
-  $form['deauth2']  = AWeber_Webform::deauthorizeButtonFake();
-  $form['submit2']  = AWeber_Webform::submitButtonFake();
-
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
@@ -391,8 +381,3 @@ function aweber_webform_form_validate($form, &$form_state) {
 
   return $form;
 }
-
-
-
-
-

@@ -25,8 +25,6 @@ class AWeber_Webform {
         t('" target="_blank">Click here to obtain an authorization key and copy it into the box above.</a><br />'),
     );
 
-    $form['submit2'] = self::submitButtonFake();
-
     $form['submit'] = array(
       '#type' => 'submit',
       '#value' => t('Authorize'),
@@ -34,6 +32,8 @@ class AWeber_Webform {
 
     return $form;
   }
+
+  
 
   /**
    * Creates the form that prompts for the user to create a web form.
@@ -53,8 +53,6 @@ class AWeber_Webform {
 
     $form['refresh']  = self::refreshButton();
     $form['deauth']   = self::deauthorizeButton();
-    $form['refresh2'] = self::refreshButtonFake();
-    $form['deauth2']  = self::deauthorizeButtonFake();
 
     return $form;
   }
@@ -103,19 +101,6 @@ class AWeber_Webform {
   }
 
   /**
-   * Adds a fake refresh button.
-   */
-  public static function refreshButtonFake() {
-    return array(
-      '#prefix' => t('<div class="aweber_webform_fakebutton">'),
-      '#type'   => 'submit',
-      '#value'  => t('Refreshing...'),
-      '#name'   => 'refresh',
-      '#suffix' => t('</div>'),
-    );
-  }
-
-  /**
    * Adds a button to deauthorize the AWeber account.
    */
   public static function deauthorizeButton() {
@@ -126,32 +111,6 @@ class AWeber_Webform {
       '#name'   => 'deauth',
       '#suffix' => t('<img class="aweber_webform_help" id="aweber_webform_helpDeauth" src="')
         . file_create_url(drupal_get_path('module', 'aweber_webform')) . t('/questionmark.png" alt=""></div>'),
-    );
-  }
-
-  /**
-   * Adds a fake deauth button.
-   */
-  public static function deauthorizeButtonFake() {
-    return array(
-      '#prefix' => t('<div class="aweber_webform_fakebutton">'),
-      '#type'   => 'submit',
-      '#value'  => t('Deauthorizing...'),
-      '#name'   => 'deauth',
-      '#suffix' => t('</div>'),
-    );
-  }
-
-  /**
-   * Adds a fake submit button.
-   */
-  public static function submitButtonFake() {
-    return array(
-      '#prefix' => t('<div class="aweber_webform_fakebutton">'),
-      '#type'   => 'submit',
-      '#value'  => t('Saving...'),
-      '#name'   => 'op',
-      '#suffix' => t('</div>'),
     );
   }
 

@@ -74,22 +74,6 @@ jQuery(document).ready(function($){
         }
     });
 
-    $('div.aweber_webform_button_loading').hide();
-
-    $('input[name="op"]').live('click', function() {
-        $(this).val('Saving...');
-    });
-
-    $('input[name="refresh"]').live('click', function() {
-        $(this).val('Refreshing...');
-    });
-
-    $('input[name="deauth"]').live('click', function() {
-        $(this).val('Deauthorizing...');
-    });
-
-    $('.aweber_webform_fakebutton').hide();
-
     function myqtip($item, $text, $target, $tooltip, $width) {
         $item.qtip({
         content: $text,
