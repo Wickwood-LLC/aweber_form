@@ -1,6 +1,6 @@
 name = AWeber Web Form
 description = Allows users to add an AWeber web form to a page.
-version = 1.0
+version = 1.1
 core = 7.x
 php = 5.3.2
 

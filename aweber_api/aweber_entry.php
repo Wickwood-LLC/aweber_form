@@ -72,9 +72,8 @@ class AWeberEntry extends AWeberResponse {
      *      if the delete request failed.
      */
     public function delete() {
-        $status = $this->adapter->request('DELETE', $this->url, array(), array('return' => 'status'));
-        if (substr($status, 0, 2) == '20') return true;
-        return false;
+        $this->adapter->request('DELETE', $this->url, array(), array('return' => 'status'));
+        return true;
     }
 
     /**
@@ -93,13 +92,17 @@ class AWeberEntry extends AWeberResponse {
      * @return mixed AWeberEntry(Resource) Resource created on List ($list)
      *                                     or False if resource was not created.
      */
-    public function move($list) {
+    public function move($list, $last_followup_message_number_sent=NULL) {
         # Move Resource
-        $params = array('ws.op' => 'move', 'list_link' => $list->self_link);
-        $data = $this->adapter->request('POST', $this->url, $params, array('return' => 'headers'));
-        if ($data['Status-Code']  !==  '201') {
-            return false;
+        $params = array(
+                        'ws.op' => 'move',
+                        'list_link' => $list->self_link
+                    );
+        if (isset($last_followup_message_number_sent)) {
+            $params['last_followup_message_number_sent'] = $last_followup_message_number_sent;
         }
+
+        $data = $this->adapter->request('POST', $this->url, $params, array('return' => 'headers'));
 
         # Return new Resource
         $url = $data['Location'];
@@ -117,9 +120,6 @@ class AWeberEntry extends AWeberResponse {
     public function save() {
         if (!empty($this->_localDiff)) {
             $data = $this->adapter->request('PATCH', $this->url, $this->_localDiff, array('return' => 'status'));
-            if (substr($data, 0, 2) !== '20') {
-                return false;
-            }
         }
         $this->_localDiff = array();
         return true;
@@ -166,11 +166,77 @@ class AWeberEntry extends AWeberResponse {
      * @access public
      */
     public function __set($key, $value) {
-        if (isset($this->data[$key])) {
+        if (array_key_exists($key, $this->data)) {
             $this->_localDiff[$key] = $value;
             return $this->data[$key] = $value;
         } else {
             return parent::__set($key, $value);
+        }
+    }
+
+    /**
+     * findSubscribers
+     *
+     * Looks through all lists for subscribers
+     * that match the given filter
+     * @access public
+     * @return AWeberCollection
+     */
+    public function findSubscribers($search_data) {
+        $this->_methodFor(array('account'));
+        $params = array_merge($search_data, array('ws.op' => 'findSubscribers'));
+        $data = $this->adapter->request('GET', $this->url, $params);
+
+        $ts_params = array_merge($params, array('ws.show' => 'total_size'));
+        $total_size = $this->adapter->request('GET', $this->url, $ts_params, array('return' => 'integer'));
+
+        # return collection
+        $data['total_size'] = $total_size;
+        $url = $this->url . '?'. http_build_query($params);
+        return new AWeberCollection($data, $url, $this->adapter);
+    }
+
+    /**
+     * getActivity
+     *
+     * Returns analytics activity for a given subscriber
+     * @access public
+     * @return AWeberCollection
+     */
+    public function getActivity() {
+        $this->_methodFor(array('subscriber'));
+        $params = array('ws.op' => 'getActivity');
+        $data = $this->adapter->request('GET', $this->url, $params);
+
+        $ts_params = array_merge($params, array('ws.show' => 'total_size'));
+        $total_size = $this->adapter->request('GET', $this->url, $ts_params, array('return' => 'integer'));
+
+        # return collection
+        $data['total_size'] = $total_size;
+        $url = $this->url . '?'. http_build_query($params);
+        return new AWeberCollection($data, $url, $this->adapter);
+    }
+
+    /** getParentEntry
+     *
+     * Gets an entry's parent entry
+     * Returns NULL if no parent entry
+     */
+    public function getParentEntry(){
+        $url_parts = explode('/', $this->url);
+        $size = count($url_parts);
+
+        #Remove entry id and slash from end of url
+        $url = substr($this->url, 0, -strlen($url_parts[$size-1])-1);
+
+        #Remove collection name and slash from end of url
+        $url = substr($url, 0, -strlen($url_parts[$size-2])-1);
+
+        try {
+            $data = $this->adapter->request('GET', $url);
+            return new AWeberEntry($data, $url, $this->adapter);
+        } catch (Exception $e) {
+            return NULL;
         }
     }
 
@@ -250,12 +316,7 @@ class AWeberEntry extends AWeberResponse {
     protected function _getCollection($value) {
         if (empty($this->_collections[$value])) {
             $url = "{$this->url}/{$value}";
-            try {
-                $data = $this->adapter->request('GET', $url);
-            }
-            catch (Exception $e) {
-                $data = array('entries' => array(), 'total_size' => 0, 'start' => 0);
-            }
+            $data = $this->adapter->request('GET', $url);
             $this->_collections[$value] = new AWeberCollection($data, $url, $this->adapter);
         }
         return $this->_collections[$value];
@@ -280,5 +341,3 @@ class AWeberEntry extends AWeberResponse {
     }
 
 }
-
-?>
