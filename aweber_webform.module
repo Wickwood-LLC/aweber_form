@@ -44,6 +44,8 @@ function aweber_webform_block_view($delta = ' ') {
       $block['content'] = t('');
     }
     else {
+      // Always use SSL
+      $js_url = preg_replace('/^http\:/', 'https:', $js_url);
       //If the web form is in db (selected), return Javascript for it.
       $block['content'] = "<script type=\"text/javascript\" src=\"{$js_url}\"></script>";
     }
